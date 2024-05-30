@@ -12,21 +12,21 @@ services:
   #     PROXY_PASS_URL: http://server/api
   #   depends_on:
   #     - server
-  # server:
-  #   image: crawler/server
-  #   build:
-  #     context: ./server/
-  #   ports:
-  #     - 8092:80
-  #   restart: always
-  #   depends_on:
-  #     database: 
-  #       condition: service_healthy
-  #   environment:
-  #     DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-  #     DATABASE_USER: ${DATABASE_USER}
-  #     DATABASE_NAME: ${DATABASE_NAME}
-  #     DATABASE_HOST: database
+  server:
+    image: crawler/server
+    build:
+      context: ./server/
+    ports:
+      - 8092:80
+    restart: always
+    depends_on:
+      database: 
+        condition: service_healthy
+    environment:
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_HOST: database
   database:
     image: crawler/database
     build:
