@@ -1,6 +1,6 @@
 // entry API for the crawler
 
-import { letsCrawl, CrawlingParametersBuilder} from './CrawlerExecutor.js'; 
+import { letsCrawl } from './CrawlerExecutor.js'; 
 import { CrawlRecord } from './CrawlRecord.js';
 import { CrawlingParameters } from './CrawlingParameters.js';
 import { databaseEntry } from './DatabaseEntry.js'; 

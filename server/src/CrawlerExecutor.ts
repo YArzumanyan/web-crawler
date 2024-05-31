@@ -7,7 +7,7 @@ import { CrawlingParameters } from './CrawlingParameters.js';
 import { CrawlRecord } from './CrawlRecord.js';
 
 /**
- * Creates a new crawling task.
+ * Creates a new crawling task, also starts periodic crawling.
  * @param crawlingParameters The parameters for the crawling task.
  * @returns The crawl record.
  */

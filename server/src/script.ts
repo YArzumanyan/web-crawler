@@ -1,9 +1,15 @@
 // example of crawler usage
 
+// task is created with CrawlingParameter class, 
+// the info about concrete task is cached in the local memory
+// in the same class parameters yet. 
+
+// The output of crawling is called CrawlRecord, it is 
+// saved in the database.
+
 import "reflect-metadata"
-import { letsCrawl, CrawlingParametersBuilder } from './CrawlerExecutor.js';
+import { CrawlingParametersBuilder } from './CrawlerExecutor.js';
 import { newTask, getAllTasks, getCrawlRecord, removeTask } from './CrawlerEntry.js';
-import { AppDataSource } from './DatabaseEntry.js';
 import { CrawlRecord } from './CrawlRecord.js';
 
 const crawlingParameters = new CrawlingParametersBuilder()
@@ -11,6 +17,7 @@ const crawlingParameters = new CrawlingParametersBuilder()
     .setBoundaryRegExp(new RegExp('//ru.wikipedia.org/'))
     .setLabel('example')
     .setTags(['example'])
+    .setPeriodInMs(1000 * 10)
     .build();
 
 
@@ -21,7 +28,6 @@ const crawlingParameters2 = new CrawlingParametersBuilder()
     .setTags(['example2'])
     .build();
 
-AppDataSource.logger.logQuery('lets crawl');
 
 //const record = letsCrawl(crawlingParameters);
 
@@ -87,9 +93,4 @@ record.then((r: CrawlRecord | null) => {
         });
     
     }
-    
-
-    // Example usage with an initial CrawlRecord object
-    // const rootRecord = ... (initialize your root CrawlRecord object here)
-    // breadthFirstTraversal(rootRecord);
 });
