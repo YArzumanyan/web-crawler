@@ -59,8 +59,6 @@ class CrawlerExecutor {
                 return null;
             }
 
-            console.log('Crawling finished');
-            console.log(record);
             return record;
         } finally {
             this.#allFoundMatchedHandledUrls = {};
@@ -84,7 +82,7 @@ class CrawlerExecutor {
             return null;
         }
 
-        console.log(`Crawling: ${url}`);
+        // console.log(`Crawling: ${url}`);
 
         const response = await fetch(url);
         const html = await response.text();
@@ -103,13 +101,8 @@ class CrawlerExecutor {
 
         const crawlTime = Date.now();
 
-        const record: CrawlRecord = {
-            url,
-            crawlTime,
-            title: title || 'No title',
-            matchLinksRecords: [],
-            notMatchLinks: notMatchLinks
-        };
+        const record: CrawlRecord = new CrawlRecord(
+            url, crawlTime, title || "No title", [], [], []);
 
         this.#allFoundMatchedHandledUrls[url] = record;
 
@@ -133,10 +126,10 @@ class CrawlerExecutor {
                 }
 
                 if (subRecord) {
-                    record.matchLinksRecords.push(subRecord);
+                    record.matchLinksRecord.push(subRecord);
                 }
-            } else if (!record.matchLinksRecords.includes(this.#allFoundMatchedHandledUrls[validLink])) {
-                record.matchLinksRecords.push(this.#allFoundMatchedHandledUrls[validLink]);
+            } else if (!record.matchLinksRecord.includes(this.#allFoundMatchedHandledUrls[validLink])) {
+                record.matchLinksRecord.push(this.#allFoundMatchedHandledUrls[validLink]);
             }
         }
 

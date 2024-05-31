@@ -12,7 +12,7 @@ export class CrawlingParameters {
     tags: string[];
     crawlingPeriodicExecutor: CrawlerPeriodicExecutor | undefined;
     crawlingExecutor: any;
-    recordId: number | undefined;
+    recordId: string | undefined;
     constructor(
         url: string, 
         boundaryRegExp: RegExp, 

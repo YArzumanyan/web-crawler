@@ -1,34 +1,40 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, PrimaryColumn } from "typeorm"
 import 'reflect-metadata';
+import { on } from "events";
 
 @Entity()
 export class CrawlRecord {
     @PrimaryGeneratedColumn()
-    id?: number;
+    id?: string;
 
     @Column()
     url: string;
 
-    @Column()
+    @Column('bigint')
     crawlTime: number;
 
     @Column()
     title: string;
 
-    @OneToMany(() => CrawlRecord, (record) => record.matchLinksRecords)
-    matchLinksRecords: CrawlRecord[];
+    @Column('simple-array')
+    matchLinksRecordIds: string[];
 
-    @Column("simple-array")
+    matchLinksRecord: CrawlRecord[];
+
+    @Column('simple-array')
     notMatchLinks: string[];
 
-    @ManyToOne(() => CrawlRecord, (record) => record.matchLinksRecords)
-    parent?: CrawlRecord;
-
-    constructor(url: string, crawlTime: number, title: string, matchLinksRecords: CrawlRecord[], notMatchLinks: string[]) {
+    constructor(url: string, 
+        crawlTime: number, 
+        title: string, 
+        matchLinksRecordIds: string[],
+        matchLinksRecord: CrawlRecord[],
+        notMatchLinks: string[]) {
         this.url = url;
         this.crawlTime = crawlTime;
         this.title = title;
-        this.matchLinksRecords = matchLinksRecords;
+        this.matchLinksRecordIds = matchLinksRecordIds;
+        this.matchLinksRecord = matchLinksRecord;
         this.notMatchLinks = notMatchLinks;
     }
 }
