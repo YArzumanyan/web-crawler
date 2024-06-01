@@ -2,6 +2,8 @@
 import { DataSource, Entity, PrimaryGeneratedColumn, In } from 'typeorm';
 import { CrawlRecord } from './CrawlRecord.js';
 import * as dotenv from 'dotenv';
+// import mutex for synchronization
+import { Mutex } from 'async-mutex';
 
 dotenv.config();
 
@@ -22,7 +24,10 @@ AppDataSource.initialize()
 
 
 class DatabaseEntry {
+    #mutex = new Mutex();
     async saveCrawlRecord(record: CrawlRecord): Promise<string> {
+        this.#mutex.acquire();
+            
         var allRecords: CrawlRecord[] = [];
         var allFoundUrls: any = [];
         var queue: CrawlRecord[] = [];
@@ -54,10 +59,12 @@ class DatabaseEntry {
             await AppDataSource.getRepository(CrawlRecord).update(record.id!, {matchLinksRecordIds: record.matchLinksRecordIds});
         }
 
+        this.#mutex.release();
         return record!.id!;
     }
     
     async removeCrawlRecord(id: string): Promise < boolean > {
+            this.#mutex.acquire();
             const crawlRecordRepository = AppDataSource.getRepository(CrawlRecord);
 
             const record = await crawlRecordRepository.findOneBy({ id });
@@ -87,17 +94,20 @@ class DatabaseEntry {
                 AppDataSource.getRepository(CrawlRecord).remove(next);
             }
         }
+        this.#mutex.release();
         return true;
     }
 
     async updateCrawlRecord(record: CrawlRecord): Promise<boolean> {
-        const crawlRecordRepository = AppDataSource.getRepository(CrawlRecord);
-        const updateResult = await crawlRecordRepository.save(record);
+        this.#mutex.acquire();
+        this.removeCrawlRecord(record.id!);
+        const updateResult = await this.saveCrawlRecord(record);
+        this.#mutex.release();
         return !!updateResult;
     }
 
     async getCrawlRecord(id: string): Promise<CrawlRecord | null> {
-
+        this.#mutex.acquire();
         const crawlRecordRepository = AppDataSource.getRepository(CrawlRecord);
 
         // Load the top-level record
@@ -110,6 +120,9 @@ class DatabaseEntry {
             var allFoundUrls: any = [];
             var queue: CrawlRecord[] = [];
             queue.push(record);
+            if(!record.matchLinksRecord){
+                record.matchLinksRecord = [];
+            }
             while (queue.length > 0) {
                 const next = queue.shift();
                 if (next) {
@@ -125,9 +138,6 @@ class DatabaseEntry {
                     for (const childId of next.matchLinksRecordIds) {
                         if (allFoundUrls[childId]) {
 
-                            if (!next.matchLinksRecord) {
-                                next.matchLinksRecord = [];
-                            }
                             next.matchLinksRecord.push(allFoundUrls[childId]);
 
                         } else (allFoundUrls[childId])
@@ -135,10 +145,10 @@ class DatabaseEntry {
 
                             const child = await crawlRecordRepository.findOneBy({ id: childId });
                             if (child) {
-                                queue.push(child);
-                                if(!next.matchLinksRecord){
-                                    next.matchLinksRecord = [];
+                                if(!child.matchLinksRecord){
+                                    child.matchLinksRecord = [];
                                 }
+                                queue.push(child);
                                 next.matchLinksRecord.push(child);
                             }
                         }
@@ -147,6 +157,7 @@ class DatabaseEntry {
             }
         }
 
+        this.#mutex.release();
         return record || null;
     }
 }

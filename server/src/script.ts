@@ -49,48 +49,53 @@ console.log(allTasks);
 record.then((r: CrawlRecord | null) => {
     console.log('LETS GET TASK BY PARAMS');
 
-    var allFoundMatchedHandledUrls: Record<string, CrawlRecord> = {};
     if (r) {
-        const queue: CrawlRecord[] = [];
-
-        queue.push(r);
-
-        let numberToNextLevel = 1;
-
-        while (queue.length > 0) {
-            const record = queue.shift();
-
-            if (record) {
-                if(allFoundMatchedHandledUrls[record.url]) {
-                    continue;
-                }
-
-                allFoundMatchedHandledUrls[record.url] = record;
-
-                console.log(record.url);
-
-                if (record.matchLinksRecordIds.length <= 3) {
-                    queue.push(...record.matchLinksRecord);
-                } else {
-                    queue.push(...record.matchLinksRecord.slice(0, 3));
-                }
-
-                numberToNextLevel--;
-                if (numberToNextLevel === 0) {
-                    numberToNextLevel = queue.length;
-                    console.log('---');
-                }
-            }
-        }
-
+        printRecords(r);
         getCrawlRecord(crawlingParameters).then((gotRecord) => {
             console.log('GOT RECORD:');
             console.log(gotRecord);
-            // go through the records and print URL according increasing layers of graph 
+            if(gotRecord) {
+                printRecords(gotRecord);
+            } else throw new Error('Record not found');
         }).then(() => {
             console.log('LETS REMOVE TASK');
             removeTask(crawlingParameters);
         });
-    
     }
 });
+
+// if the layer is too huge, it will print only the first 5 links
+function printRecords(record: CrawlRecord) {
+    var allFoundMatchedHandledUrls: Record<string, CrawlRecord> = {};
+
+    console.log('PRINT RECORDS OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOo');
+    const queue: CrawlRecord[] = [];
+    queue.push(record);
+    let numberToNextLevel = 1;
+    while (queue.length > 0) {
+        const record = queue.shift();
+
+        if (record) {
+            if(allFoundMatchedHandledUrls[record.url]) {
+                continue;
+            }
+
+            allFoundMatchedHandledUrls[record.url] = record;
+
+            console.log(record.url);
+
+            if (record.matchLinksRecordIds.length <= 5) {
+                queue.push(...record.matchLinksRecord);
+            } else {
+                queue.push(...record.matchLinksRecord.slice(0, 3));
+            }
+
+            numberToNextLevel--;
+            if (numberToNextLevel === 0) {
+                numberToNextLevel = queue.length;
+                console.log('---');
+            }
+        }
+    }
+    console.log('PRINT RECORDS END OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOo');
+}

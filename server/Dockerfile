@@ -8,6 +8,8 @@ RUN npm ci
 
 COPY . .
 
+RUN npm install async-mutex
+
 RUN npx tsc
 
 CMD ["node", "dist/script.js"]
