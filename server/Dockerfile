@@ -10,4 +10,7 @@ COPY . .
 
 RUN npx tsc
 
-CMD ["node", "dist/script.js"]
+# CMD ["node", "dist/script.js"]
+CMD ["node", "dist/server.js"]
+
+EXPOSE 3000
