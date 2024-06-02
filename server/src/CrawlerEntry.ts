@@ -35,6 +35,10 @@ export async function getCrawlRecord(CrawlingParameters: CrawlingParameters): Pr
     return await databaseEntry.getCrawlRecord(CrawlingParameters.recordId);
 }
 
+export async function getCrawlRecordById(id: string): Promise<CrawlRecord | null> {
+    return await databaseEntry.getCrawlRecord(id);
+}
+
 /**
  * @returns true if the task was removed, false otherwise
  * false can be returned if the task was not found in the local memory
@@ -60,3 +64,12 @@ export function removeTask(crawlingParameters: CrawlingParameters): boolean {
     return true;
 }
 
+// TODO: Has redundant code, fix it
+export async function removeTaskById(id: string): Promise<boolean> {
+    const crawlingParameters = allCrawlingParameters.find((c) => c.recordId === id);
+    if (!crawlingParameters) {
+        return false;
+    }
+
+    return removeTask(crawlingParameters);
+}
