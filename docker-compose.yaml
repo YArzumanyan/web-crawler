@@ -48,12 +48,12 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/initial.sql:/docker-entrypoint-initdb.d/initial.sql
-  #adminer:
-  #  image: adminer
-  #  restart: always
-  #  depends_on:
-  #    - database
-  #  ports:
-  #    - 8090:8080
+  adminer:
+   image: adminer
+   restart: always
+   depends_on:
+     - database
+   ports:
+     - 8090:8080
 volumes:
   postgres_data:

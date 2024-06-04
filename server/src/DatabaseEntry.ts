@@ -1,6 +1,7 @@
 
 import { DataSource, Entity, PrimaryGeneratedColumn, In } from 'typeorm';
 import { CrawlRecord } from './CrawlRecord.js';
+import { Website } from './Website.js';
 import * as dotenv from 'dotenv';
 // import mutex for synchronization
 import { Mutex } from 'async-mutex';
@@ -13,15 +14,13 @@ export const AppDataSource = new DataSource({
     database: process.env.DATABASE_NAME,
     username: process.env.DATABASE_USER,
     password: process.env.DATABASE_PASSWORD,
-    entities: [CrawlRecord],
+    entities: [CrawlRecord, Website],
     synchronize: true,
     logging: true,
 });
 
 AppDataSource.initialize()
     .catch((error: Error) => console.log(error))
-
-
 
 class DatabaseEntry {
     #mutex = new Mutex();
@@ -38,6 +37,7 @@ class DatabaseEntry {
                 if (allFoundUrls[next.url!]) {
                     continue;
                 }
+
                 allFoundUrls[next.url!] = next;
                 allRecords.push(next);
 
@@ -159,6 +159,59 @@ class DatabaseEntry {
 
         this.#mutex.release();
         return record || null;
+    }
+
+    async saveWebsite(website: Website): Promise<string> {
+        this.#mutex.acquire();
+        const websiteRepository = AppDataSource.getRepository(Website);
+        await websiteRepository.save(website);
+        this.#mutex.release();
+
+        return website.id!;
+    }
+
+    async removeWebsite(id: string): Promise<boolean> {
+        this.#mutex.acquire();
+        const websiteRepository = AppDataSource.getRepository(Website);
+        const website = await websiteRepository.findOneBy({ id });
+        if (!website) {
+            return false;
+        }
+        await websiteRepository.remove(website);
+        this.#mutex.release();
+        return true;
+    }
+
+    async updateWebsite(website: Website): Promise<boolean> {
+        this.#mutex.acquire();
+        const websiteRepository = AppDataSource.getRepository(Website);
+        const updateResult = await websiteRepository.update(website.id!, website);
+        this.#mutex.release();
+        return !!updateResult;
+    }
+
+    async getWebsiteById(id: string): Promise<Website | null> {
+        this.#mutex.acquire();
+        const websiteRepository = AppDataSource.getRepository(Website);
+        const website = await websiteRepository.findOneBy({ id });
+        this.#mutex.release();
+        return website;
+    }
+
+    async getWebsiteByURL(url: string): Promise<Website | null> {
+        this.#mutex.acquire();
+        const websiteRepository = AppDataSource.getRepository(Website);
+        const website = await websiteRepository.findOneBy({ url });
+        this.#mutex.release();
+        return website;
+    }
+
+    async getWebsites(): Promise<Website[]> {
+        this.#mutex.acquire();
+        const websiteRepository = AppDataSource.getRepository(Website);
+        const websites = await websiteRepository.find();
+        this.#mutex.release();
+        return websites;
     }
 }
 

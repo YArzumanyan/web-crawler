@@ -4,6 +4,7 @@ import { letsCrawl } from './CrawlerExecutor.js';
 import { CrawlRecord } from './CrawlRecord.js';
 import { CrawlingParameters } from './CrawlingParameters.js';
 import { databaseEntry } from './DatabaseEntry.js'; 
+import { Website } from './Website.js';
 
 const allCrawlingParameters: CrawlingParameters[] = [];
 
@@ -16,7 +17,12 @@ export async function newTask(crawlingParameters: CrawlingParameters): Promise<C
 
     const record = await letsCrawl(crawlingParameters);
 
-    if(record) {
+    if (record) {
+        let owner = null;
+        
+        if (record.owner) owner = await databaseEntry.getWebsiteByURL(record.owner.url);
+        if (owner) record.owner = owner;
+
         const id = await databaseEntry.saveCrawlRecord(record);
         crawlingParameters.recordId = id; 
     }

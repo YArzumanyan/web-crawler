@@ -5,6 +5,7 @@ import { CrawlerPeriodicExecutor } from './CrawlerPeriodicExecutor.js';
 import { CrawlingParametersBuilder } from './CrawlingParametersBuilder.js';
 import { CrawlingParameters } from './CrawlingParameters.js';
 import { CrawlRecord } from './CrawlRecord.js';
+import { Website } from './Website.js';
 
 /**
  * Creates a new crawling task, also starts periodic crawling.
@@ -46,14 +47,15 @@ class CrawlerExecutor {
         this.#allFoundMatchedHandledUrls = {};
 
         try {
-            const { url, boundaryRegExp } = this.crawlingParameters;
+            const { url, boundaryRegExp, label, tags, isActive } = this.crawlingParameters;
 
             this.crawlingStartTimeInMs = Date.now();
             this.timeExceeded = false;
 
             let record: CrawlRecord | null;
             try {
-                record = await this.#crawlRecursion(url, boundaryRegExp);
+                const website = new Website(label, url, boundaryRegExp.source, tags, isActive);
+                record = await this.#crawlRecursion(url, boundaryRegExp, website);
             } catch (e) {
                 console.error('Error during crawling: ' + e);
                 return null;
@@ -75,7 +77,7 @@ class CrawlerExecutor {
         return false;
     }
 
-    async #crawlRecursion(url: string, boundaryRegExp: RegExp): Promise<CrawlRecord | null> {
+    async #crawlRecursion(url: string, boundaryRegExp: RegExp, website?: Website): Promise<CrawlRecord | null> {
         if (this.#isCrawlingTimeExceeded()) {
             console.log('Crawling time exceeded during crawling of: ' + url);
             this.timeExceeded = true;
@@ -102,7 +104,7 @@ class CrawlerExecutor {
         const crawlTime = Date.now();
 
         const record: CrawlRecord = new CrawlRecord(
-            url, crawlTime, title || "No title", [], [], []);
+            url, crawlTime, title || "No title", [], [], [], website);
 
         this.#allFoundMatchedHandledUrls[url] = record;
 
@@ -115,7 +117,9 @@ class CrawlerExecutor {
             if (!(validLink in this.#allFoundMatchedHandledUrls)) {
                 let subRecord: CrawlRecord | null;
                 try {
-                    subRecord = await this.#crawlRecursion(validLink, boundaryRegExp);
+                    // Create a new website object for each link
+                    const subWebsite = new Website(this.crawlingParameters.label, validLink, boundaryRegExp.source, this.crawlingParameters.tags, this.crawlingParameters.isActive);
+                    subRecord = await this.#crawlRecursion(validLink, boundaryRegExp, subWebsite);
                 } catch (e) {
                     console.error("Unable to crawl: " + validLink + " due to error: " + e);
                     continue;
