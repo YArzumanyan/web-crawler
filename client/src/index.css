@@ -14,3 +14,7 @@
 body {
     margin: 0;
 }  
+
+.nav-link:visited {
+  text-decoration: none;
+}

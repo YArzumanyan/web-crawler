@@ -5,7 +5,13 @@ export default function ErrorPage() {
   console.error(error);
 
   return (
-    <div className="d-flex flex-column text-center vh-100 justify-content-center">
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      textAlign: "center",
+      height: "100vh",
+      justifyContent: "center"
+    }}>
       <h1>Oops!</h1>
       <p>Sorry, an unexpected error has occurred.</p>
     </div>
