@@ -1,5 +1,4 @@
 import { Link, useLoaderData } from "react-router-dom";
-import { Table } from "reactstrap";
 
 type Website = {
   id: string,
@@ -17,7 +16,7 @@ export const Websites = () => {
   const header = ["ID", "label", "url", "regexp", "tags", "active", "action"]
 
   return (
-      <Table className="table align-middle" bordered hover responsive>
+      <table>
         <thead><tr>{header.map(item => <th scope="col" key={"thead-" + item}>{item}</th>)}</tr></thead>
         <tbody>
           {websites!.map(web => <tr key={"website-" + web.id}>
@@ -46,6 +45,6 @@ export const Websites = () => {
             </td>
           </tr>)}
         </tbody>
-      </Table>
+      </table>
   );
 };
