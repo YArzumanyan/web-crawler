@@ -1,6 +1,7 @@
 
 import { CrawlRecord } from "./CrawlRecord.js";
 import { databaseEntry } from "./DatabaseEntry.js";
+
 /**
  * Periodically executes the crawler.
  */

@@ -192,6 +192,10 @@ class DatabaseEntry {
 
     async getWebsiteById(id: string): Promise<Website | null> {
         this.#mutex.acquire();
+        if (!id) {
+            return null;
+        }
+
         const websiteRepository = AppDataSource.getRepository(Website);
         const website = await websiteRepository.findOneBy({ id });
         this.#mutex.release();

@@ -14,8 +14,8 @@ import {
   removeTaskById,
 } from "./CrawlerEntry.js";
 import { CrawlingParametersBuilder } from "./CrawlingParametersBuilder.js";
-import { Website } from "./Website.js";
 import { getAllWebsites, getWebsiteById, saveWebsite } from "./WebsiteEntry.js";
+import { CrawlRecord } from "./CrawlRecord.js";
 
 const nodeType: GraphQLObjectType = new GraphQLObjectType({
   name: "Node",
@@ -53,12 +53,14 @@ const queryType = new GraphQLObjectType({
         webPages: { type: new GraphQLList(GraphQLString) },
       },
       resolve: async (root, { webPages }) => {
-        const nodes = [];
-        for (const webPage of webPages) {
-          const crawlRecord = await getCrawlRecordById(webPage);
-          nodes.push(crawlRecord);
-        }
-        return nodes;
+        const results = await Promise.all(webPages.map(async (webPage: string) => {
+          const crawlRecord = await getCrawlRecordById(webPage)
+          if (crawlRecord) {
+            return crawlRecord;
+          }
+        }));
+        
+        return results.filter((record: CrawlRecord | null) => record !== null);
       },
     },
     website: {
@@ -99,7 +101,7 @@ const mutationType = new GraphQLObjectType({
           .setPeriodInMs(periodicity)
           .setIsActive(active)
           .build();
-        
+
         const record = await newTask(crawlingParameters);
         return record?.owner;
       },

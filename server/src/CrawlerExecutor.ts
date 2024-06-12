@@ -12,8 +12,9 @@ import { Website } from './Website.js';
  * @param crawlingParameters The parameters for the crawling task.
  * @returns The crawl record.
  */
-function prepareAndRunCrawl(crawlingParameters: CrawlingParameters): Promise<CrawlRecord | null> {
+function prepareAndRunCrawl(crawlingParameters: CrawlingParameters, owner: Website | null): Promise<CrawlRecord | null> {
     crawlingParameters.crawlingExecutor = new CrawlerExecutor(crawlingParameters);
+    crawlingParameters.crawlingExecutor.setOwner(owner);
 
     const crawlRecord = crawlingParameters.crawlingExecutor.letsCrawl();
 
@@ -31,12 +32,17 @@ class CrawlerExecutor {
     private crawlingParameters: CrawlingParameters;
     private crawlingStartTimeInMs!: number;
     private timeExceeded: boolean = false;
+    private owner: Website | null = null;
     #allFoundMatchedHandledUrls: Record<string, CrawlRecord> = {};
 
     constructor(crawlingParameters: CrawlingParameters, crawlExpirationTimeInMs: number = 1000 * 60 * 5) {
         this.lock = new CustomLock();
         this.#crawlExpirationTimeInMs = crawlExpirationTimeInMs;
         this.crawlingParameters = crawlingParameters;
+    }
+
+    setOwner(owner: Website): void {
+        this.owner = owner;
     }
 
     async letsCrawl(): Promise<CrawlRecord | null> {
@@ -47,15 +53,14 @@ class CrawlerExecutor {
         this.#allFoundMatchedHandledUrls = {};
 
         try {
-            const { url, boundaryRegExp, label, tags, isActive } = this.crawlingParameters;
+            const { url, boundaryRegExp } = this.crawlingParameters;
 
             this.crawlingStartTimeInMs = Date.now();
             this.timeExceeded = false;
 
             let record: CrawlRecord | null;
             try {
-                const website = new Website(label, url, boundaryRegExp.source, tags, isActive);
-                record = await this.#crawlRecursion(url, boundaryRegExp, website);
+                record = await this.#crawlRecursion(url, boundaryRegExp);
             } catch (e) {
                 console.error('Error during crawling: ' + e);
                 return null;
@@ -77,7 +82,7 @@ class CrawlerExecutor {
         return false;
     }
 
-    async #crawlRecursion(url: string, boundaryRegExp: RegExp, website?: Website): Promise<CrawlRecord | null> {
+    async #crawlRecursion(url: string, boundaryRegExp: RegExp): Promise<CrawlRecord | null> {
         if (this.#isCrawlingTimeExceeded()) {
             console.log('Crawling time exceeded during crawling of: ' + url);
             this.timeExceeded = true;
@@ -104,7 +109,7 @@ class CrawlerExecutor {
         const crawlTime = Date.now();
 
         const record: CrawlRecord = new CrawlRecord(
-            url, crawlTime, title || "No title", [], [], [], website);
+            url, crawlTime, title || "No title", [], [], [], this.owner || undefined);
 
         this.#allFoundMatchedHandledUrls[url] = record;
 
@@ -117,9 +122,7 @@ class CrawlerExecutor {
             if (!(validLink in this.#allFoundMatchedHandledUrls)) {
                 let subRecord: CrawlRecord | null;
                 try {
-                    // Create a new website object for each link
-                    const subWebsite = new Website(this.crawlingParameters.label, validLink, boundaryRegExp.source, this.crawlingParameters.tags, this.crawlingParameters.isActive);
-                    subRecord = await this.#crawlRecursion(validLink, boundaryRegExp, subWebsite);
+                    subRecord = await this.#crawlRecursion(validLink, boundaryRegExp);
                 } catch (e) {
                     console.error("Unable to crawl: " + validLink + " due to error: " + e);
                     continue;

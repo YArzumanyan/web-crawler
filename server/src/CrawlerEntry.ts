@@ -14,18 +14,15 @@ export async function newTask(crawlingParameters: CrawlingParameters): Promise<C
     // -> save the record in the database
     
     allCrawlingParameters.push(crawlingParameters);
-
-    const record = await letsCrawl(crawlingParameters);
+    const { label, url, boundaryRegExp, tags, isActive } = crawlingParameters;
+    
+    const website = new Website(label, url, boundaryRegExp.source, tags, isActive);        
+    const record = await letsCrawl(crawlingParameters, website);
 
     if (record) {
-        let owner = null;
-        
-        if (record.owner) owner = await databaseEntry.getWebsiteByURL(record.owner.url);
-        if (owner) record.owner = owner;
-
-        const id = await databaseEntry.saveCrawlRecord(record);
-        crawlingParameters.recordId = id; 
+        await databaseEntry.saveCrawlRecord(record);
     }
+
     return record;
 }
 
