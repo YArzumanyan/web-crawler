@@ -27,7 +27,7 @@ export const Navigation = () => {
   const pages = [{label: 'Overview', link: '/overview'}, {label: 'Websites', link: '/websites'}];
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" style={{marginBottom: 8}}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <Typography
