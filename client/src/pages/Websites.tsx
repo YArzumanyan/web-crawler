@@ -1,4 +1,12 @@
 import { Link, useLoaderData } from "react-router-dom";
+import { DataGrid, GridColDef, GridRowId, useGridApiRef } from '@mui/x-data-grid';
+import EditIcon from '@mui/icons-material/Edit';
+import Info from '@mui/icons-material/Info';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import Chip from '@mui/joy/Chip';
+import { useState } from "react";
+import { Container, Typography } from "@mui/material";
+import { Pause, PlayArrow } from "@mui/icons-material";
 
 type Website = {
   id: string,
@@ -10,41 +18,88 @@ type Website = {
 }
 
 export const Websites = () => {
-  const websites = useLoaderData() as  Website[];
-  console.log(websites);
+  const [rows, setRows] = useState<Website[]>(useLoaderData() as  Website[])
+  const apiRef = useGridApiRef();
+  console.log(rows);
 
-  const header = ["ID", "label", "url", "regexp", "tags", "active", "action"]
+  const handleDeleteRow = (id: GridRowId) => {
+    // TODO: await delete
+    
+    // then
+    apiRef.current.updateRows([{ id, _action: 'delete' }]);
+  };
+
+  const handleToggleRow = (id: GridRowId, active: boolean) => {
+    apiRef.current.updateRows([{ id, active: !active}]);
+  }
+
+  const columns: GridColDef[] = [
+  //   { field: 'id', headerName: 'ID', width: 50 },
+    { field: 'label', headerName: 'Label', width: 200 },
+    { field: 'url', headerName: 'URL', flex: 1 },
+    // { field: 'regexp', headerName: 'RegExp', width: 300 },
+    { 
+      field: 'tags', 
+      headerName: 'Tags',
+      width: 200,
+      // valueFormatter: (value, row) => row.tags.join(", ") 
+      renderCell: () => (
+        <div style={{height: '100%', display: 'flex', alignItems: 'center', gap: 2}}>
+          {["tag1", "tag2"].map(tag => (
+            <Chip variant="soft">{tag}</Chip>
+          ))}
+        </div>
+      )
+    },
+    { 
+      field: 'active', 
+      headerName: 'Active',
+      width: 100,
+      renderCell: ({row}) => (
+        <Chip 
+          color={row.active ? "success" : "danger"} 
+          variant="outlined"
+          >
+            {row.active ? "Active" : "Disabled"}
+        </Chip> 
+      )
+    },
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Actions',
+      width: 120,
+      cellClassName: 'actions',
+      getActions: ({row}) => {
+        const toggleIcon: JSX.Element = row.active ? (
+          <Typography component={Link} to="" onClick={() => handleToggleRow(row.id, row.active)} aria-label="Enable" color="inherit"><PlayArrow /></Typography>
+        ) : (
+          <Typography component={Link} to="" onClick={() => handleToggleRow(row.id, row.active)} aria-label="Disable" color="inherit"><Pause /></Typography>
+        )
+        
+        return [
+          toggleIcon,
+          <Typography component={Link} to={"/websites/" + row.id} aria-label="View" color="inherit"><Info /></Typography>,
+          <Typography component={Link} to={"/websites/" + row.id + "/edit"} aria-label="Edit" color="inherit"><EditIcon /></Typography>,
+          <Typography component={Link} to="" onClick={() => handleDeleteRow(row.id)} aria-label="Delete" color="inherit"><DeleteIcon /></Typography>,
+        ];
+      },
+    },
+  ]
 
   return (
-      <table>
-        <thead><tr>{header.map(item => <th scope="col" key={"thead-" + item}>{item}</th>)}</tr></thead>
-        <tbody>
-          {websites!.map(web => <tr key={"website-" + web.id}>
-            <th scope="row">
-              {web.id}
-            </th>
-            <td>
-              {web.label}
-            </td>
-            <td>
-              {web.url}
-            </td>
-            <td>
-              {web.regexp}
-            </td>
-            <td>
-              {["tag1", "tag2"].join(",")}
-            </td>
-            <td>
-              {web.active ? "True" : "False"}
-            </td>
-            <td>
-              <Link className="btn btn-info" to={"/websites/" + web.id}>View</Link>
-              <Link className="btn btn-primary" to={"/websites/" + web.id + "/edit"}>Edit</Link>
-              <Link className="btn btn-danger" to={"/websites/" + web.id + "/delete"}>Delete</Link>
-            </td>
-          </tr>)}
-        </tbody>
-      </table>
+    <Container style={{height: '100%', width: '100%'}}>
+      <DataGrid
+        apiRef={apiRef}
+        rows={rows}
+        columns={columns}
+        initialState={{
+          pagination: {
+            paginationModel: {page: 0, pageSize: 10}
+          }
+        }}
+        pageSizeOptions={[5, 10, 20]}
+      />
+    </Container>
   );
 };
