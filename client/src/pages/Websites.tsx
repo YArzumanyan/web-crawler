@@ -9,12 +9,21 @@ import EditIcon from "@mui/icons-material/Edit";
 import Info from "@mui/icons-material/Info";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import Chip from "@mui/joy/Chip";
-import { useState } from "react";
-import { Box, Container, Stack, Switch, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
+import { Container, Stack, Switch, Typography } from "@mui/material";
 import { Pause, PlayArrow } from "@mui/icons-material";
+import { nodes } from "../temp/nodes";
+
+type Node = {
+  id: number;
+  title: string;
+  crawlTime: number;
+  links: any;
+  owner: number;
+}
 
 type Website = {
-  id: string;
+  id: number;
   label: string;
   url: string;
   regexp: string;
@@ -22,11 +31,26 @@ type Website = {
   active: boolean;
 };
 
-export const Websites = () => {
-  const [rows, setRows] = useState<Website[]>(useLoaderData() as Website[]);
+interface WebsiteWithNodes extends Website {
+  nodes: Node[];
+}
+
+export const Websites: React.FC = () => {
+  // Ideally websites will be passed down with their corresponding nodes
+  const [websites, setWebsites] = useState<WebsiteWithNodes[]>((useLoaderData() as Website[]).map(web => ({...web, nodes: []})));
+  const [rows, setRows] = useState<Record<number, Website>>({});
   const [graphView, setGraphView] = useState<boolean>(false);
   const apiRef = useGridApiRef();
-  console.log(rows);
+
+  // For testing purposes
+  useEffect(() => {
+    let dict: Record<number, WebsiteWithNodes> = {};
+    websites.forEach(web => {
+      dict[web.id] = web
+    })
+    nodes.map(node => dict[node.id] ? dict[node.id].nodes.push(node) : null)
+    setRows(dict)
+  }, [])
 
   const handleDeleteRow = (id: GridRowId) => {
     // TODO: await delete
@@ -59,7 +83,7 @@ export const Websites = () => {
           }}
         >
           {["tag1", "tag2"].map((tag) => (
-            <Chip variant="soft">{tag}</Chip>
+            <Chip key={"chip" + tag} variant="soft">{tag}</Chip>
           ))}
         </div>
       ),
@@ -79,7 +103,6 @@ export const Websites = () => {
       type: "actions",
       headerName: "Actions",
       width: 120,
-      cellClassName: "actions",
       getActions: ({ row }) => {
         const toggleIcon: JSX.Element = row.active ? (
           <Typography
@@ -136,7 +159,7 @@ export const Websites = () => {
   ];
 
   return (
-      <Container style={{ height: "100%", width: "100%" }}>
+    <Container style={{ height: "100%", width: "100%" }}>
       <Stack direction="row" spacing={1} alignItems="center">
         <Typography>Table</Typography>
         <Switch onChange={() => setGraphView((curr) => !curr)} />
@@ -145,18 +168,18 @@ export const Websites = () => {
       {graphView ? (
         <>Graph View</>
       ) : (
-          <DataGrid
-            apiRef={apiRef}
-            rows={rows}
-            columns={columns}
-            initialState={{
-              pagination: {
-                paginationModel: { page: 0, pageSize: 10 },
-              },
-            }}
-            pageSizeOptions={[5, 10, 20]}
-          />
-          )}
-        </Container>
+        <DataGrid
+          apiRef={apiRef}
+          rows={Object.values(rows)}
+          columns={columns}
+          initialState={{
+            pagination: {
+              paginationModel: { page: 0, pageSize: 10 },
+            },
+          }}
+          pageSizeOptions={[5, 10, 20]}
+        />
+      )}
+    </Container>
   );
 };
