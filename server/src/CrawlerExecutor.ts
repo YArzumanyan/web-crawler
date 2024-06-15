@@ -45,6 +45,10 @@ class CrawlerExecutor {
         this.owner = owner;
     }
 
+    getOwner(): Website | null {
+        return this.owner;
+    }
+
     async letsCrawl(): Promise<CrawlRecord | null> {
         if (!this.lock.tryLock()) {
             return null;

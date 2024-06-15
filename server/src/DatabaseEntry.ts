@@ -217,6 +217,27 @@ class DatabaseEntry {
         this.#mutex.release();
         return websites;
     }
+
+    async getWebsiteCrawlRecords(websiteId: string): Promise<CrawlRecord[]> {
+        this.#mutex.acquire();
+        const crawlRecordRepository = AppDataSource.getRepository(CrawlRecord);
+        const crawlRecords = await crawlRecordRepository.find({where: {
+            owner: {
+                id: websiteId
+            }
+        }});
+        this.#mutex.release();
+        return crawlRecords;
+    }
+
+    async removeWebsiteCrawlRecords(websiteId: string): Promise<boolean> {
+        this.#mutex.acquire();
+        const nodeIds = await this.getWebsiteCrawlRecords(websiteId);
+        const crawlRecordRepository = AppDataSource.getRepository(CrawlRecord);
+        const response = await Promise.all(nodeIds.map((nodeId) => crawlRecordRepository.remove(nodeId)));
+        this.#mutex.release();
+        return response.every((result) => result);
+    }
 }
 
 export const databaseEntry = new DatabaseEntry();
