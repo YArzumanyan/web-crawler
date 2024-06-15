@@ -20,9 +20,16 @@ export class CrawlerPeriodicExecutor {
             return;
         }
         this.interval = setInterval(() => {
+            const owner = this.crawlerExecutor.getOwner();
+
+            if (!owner) {
+                return;
+            }
+
+            databaseEntry.removeWebsiteCrawlRecords(this.crawlerExecutor.getOwner().id!);
             this.crawlerExecutor.letsCrawl().then((newRecord: CrawlRecord | null) => {
                 if (newRecord) {
-                    databaseEntry.updateCrawlRecord(newRecord);
+                    databaseEntry.saveCrawlRecord(newRecord);
                 }
             });
 
