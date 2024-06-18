@@ -1,7 +1,7 @@
 
 import { DataSource, Entity, PrimaryGeneratedColumn, In } from 'typeorm';
-import { CrawlRecord } from './CrawlRecord.js';
-import { Website } from './Website.js';
+import { CrawlRecord } from './Node/CrawlRecord.js';
+import { Website } from './Website/Website.js';
 import * as dotenv from 'dotenv';
 // import mutex for synchronization
 import { Mutex } from 'async-mutex';
@@ -161,13 +161,13 @@ class DatabaseEntry {
         return record || null;
     }
 
-    async saveWebsite(website: Website): Promise<number> {
+    async saveWebsite(website: Website): Promise<Website> {
         this.#mutex.acquire();
         const websiteRepository = AppDataSource.getRepository(Website);
         await websiteRepository.save(website);
         this.#mutex.release();
 
-        return website.id!;
+        return website;
     }
 
     async removeWebsite(id: number): Promise<boolean> {
@@ -197,15 +197,10 @@ class DatabaseEntry {
         }
 
         const websiteRepository = AppDataSource.getRepository(Website);
-        const website = await websiteRepository.findOneBy({ id });
-        this.#mutex.release();
-        return website;
-    }
-
-    async getWebsiteByURL(url: string): Promise<Website | null> {
-        this.#mutex.acquire();
-        const websiteRepository = AppDataSource.getRepository(Website);
-        const website = await websiteRepository.findOneBy({ url });
+        const website = await websiteRepository.findOne({
+            where: { id },
+            relations: { crawlRecords: true }
+        });
         this.#mutex.release();
         return website;
     }
@@ -213,7 +208,9 @@ class DatabaseEntry {
     async getWebsites(): Promise<Website[]> {
         this.#mutex.acquire();
         const websiteRepository = AppDataSource.getRepository(Website);
-        const websites = await websiteRepository.find();
+        const websites = await websiteRepository.find({
+            relations: { crawlRecords: true }
+        });
         this.#mutex.release();
         return websites;
     }

@@ -1,9 +1,9 @@
-import { CrawlingParameters } from './CrawlingParameters.js';
+import { Website } from './Website.js';
 
 /**
  * Parameters necessary for a crawling task
  */
-export class CrawlingParametersBuilder {
+export class WebsiteBuilder {
     #url: string;
     #boundaryRegExp: RegExp;
     #period: number;
@@ -63,6 +63,6 @@ export class CrawlingParametersBuilder {
         if (!this.#url) throw new Error('URL is required');
         if (!this.#boundaryRegExp) throw new Error('Boundary RegExp is required');
         if (!this.#label) throw new Error('Label is required');
-        return new CrawlingParameters(this.#url, this.#boundaryRegExp, this.#period, this.#label, this.#isActive, this.#tags);
+        return new Website(this.#label, this.#url, this.#boundaryRegExp.source, this.#tags, this.#period, this.#isActive);
     }
 }

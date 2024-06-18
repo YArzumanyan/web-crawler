@@ -8,11 +8,11 @@
 // saved in the database.
 
 import "reflect-metadata"
-import { CrawlingParametersBuilder } from './CrawlerExecutor.js';
-import { newTask, getAllTasks, getCrawlRecord, removeTask } from './CrawlerEntry.js';
-import { CrawlRecord } from './CrawlRecord.js';
+import { newTask, getAllTasks, getCrawlRecord, removeTask } from './Node/CrawlerEntry.js';
+import { CrawlRecord } from './Node/CrawlRecord.js';
+import { WebsiteBuilder } from "./Website/WebsiteBuilder.js";
 
-const crawlingParameters = new CrawlingParametersBuilder()
+const crawlingParameters = new WebsiteBuilder()
     .setUrl('https://www.wikipedia.org/')
     .setBoundaryRegExp(new RegExp('//ru.wikipedia.org/'))
     .setLabel('example')
@@ -21,7 +21,7 @@ const crawlingParameters = new CrawlingParametersBuilder()
     .build();
 
 
-const crawlingParameters2 = new CrawlingParametersBuilder()
+const crawlingParameters2 = new WebsiteBuilder()
     .setUrl('https://www.wikipedia.org/')
     .setBoundaryRegExp(new RegExp('//cs.wikipedia.org/'))
     .setLabel('example2')
@@ -49,19 +49,19 @@ console.log(allTasks);
 record.then((r: CrawlRecord | null) => {
     console.log('LETS GET TASK BY PARAMS');
 
-    if (r) {
-        printRecords(r);
-        getCrawlRecord(crawlingParameters).then((gotRecord) => {
-            console.log('GOT RECORD:');
-            console.log(gotRecord);
-            if(gotRecord) {
-                printRecords(gotRecord);
-            } else throw new Error('Record not found');
-        }).then(() => {
-            console.log('LETS REMOVE TASK');
-            removeTask(crawlingParameters);
-        });
-    }
+    // if (r) {
+    //     printRecords(r);
+    //     getCrawlRecord(crawlingParameters.id).then((gotRecord) => {
+    //         console.log('GOT RECORD:');
+    //         console.log(gotRecord);
+    //         if(gotRecord) {
+    //             printRecords(gotRecord);
+    //         } else throw new Error('Record not found');
+    //     }).then(() => {
+    //         console.log('LETS REMOVE TASK');
+    //         removeTask(crawlingParameters);
+    //     });
+    // }
 });
 
 // if the layer is too huge, it will print only the first 5 links

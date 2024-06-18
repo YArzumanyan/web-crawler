@@ -10,13 +10,12 @@ import {
 } from "graphql";
 import {
   getAllTasks,
-  getCrawlRecordById,
+  getCrawlRecord,
   newTask,
-  removeTaskById,
-} from "./CrawlerEntry.js";
-import { CrawlingParametersBuilder } from "./CrawlingParametersBuilder.js";
-import { getAllWebsites, getWebsiteById, removeWebsite, saveWebsite } from "./WebsiteEntry.js";
-import { CrawlRecord } from "./CrawlRecord.js";
+} from "./Node/CrawlerEntry.js";
+import { getAllWebsites, getWebsiteById, removeWebsite, saveWebsite } from "./Website/WebsiteEntry.js";
+import { CrawlRecord } from "./Node/CrawlRecord.js";
+import { WebsiteBuilder } from "./Website/WebsiteBuilder.js";
 
 const nodeType: GraphQLObjectType = new GraphQLObjectType({
   name: "Node",
@@ -37,6 +36,7 @@ const webPageType = new GraphQLObjectType({
     url: { type: GraphQLString },
     regexp: { type: GraphQLString },
     tags: { type: new GraphQLList(GraphQLString) },
+    periodicity: { type: GraphQLInt },
     active: { type: GraphQLString },
   }),
 });
@@ -55,7 +55,7 @@ const queryType = new GraphQLObjectType({
       },
       resolve: async (root, { webPages }) : Promise<CrawlRecord[]> => {
         const results = await Promise.all(webPages.map(async (webPage: string) => {
-          const crawlRecord = await getCrawlRecordById(webPage)
+          const crawlRecord = await getCrawlRecord(webPage)
           if (crawlRecord) {
             return crawlRecord;
           }
@@ -94,7 +94,7 @@ const mutationType = new GraphQLObjectType({
         root,
         { url, boundaryRegExp, label, tags, periodicity, active = true }
       ) => {
-        const crawlingParameters = new CrawlingParametersBuilder()
+        const websiteParameters = new WebsiteBuilder()
           .setUrl(url)
           .setBoundaryRegExp(new RegExp(boundaryRegExp))
           .setLabel(label)
@@ -103,8 +103,10 @@ const mutationType = new GraphQLObjectType({
           .setIsActive(active)
           .build();
 
-        const record = await newTask(crawlingParameters);
-        return record?.owner;
+        const website = await saveWebsite(websiteParameters);
+        await newTask(website);
+
+        return website;
       },
     },
     deleteTask: {
@@ -115,6 +117,13 @@ const mutationType = new GraphQLObjectType({
       resolve: async (root, { id }) => {
         const success = await removeWebsite(id);
         return success;
+      },
+    },
+    getRunningTasks: {
+      type: new GraphQLList(webPageType),
+      resolve: async () => {
+        const tasks = await getAllTasks();
+        return tasks;
       },
     },
     updateTask: {
@@ -132,7 +141,7 @@ const mutationType = new GraphQLObjectType({
         root,
         { websiteId, url, boundaryRegExp, label, tags, periodicity, active = true }
       ) => {
-        const crawlingParameters = new CrawlingParametersBuilder()
+        const websiteParameters = new WebsiteBuilder()
           .setUrl(url)
           .setBoundaryRegExp(new RegExp(boundaryRegExp))
           .setLabel(label)
@@ -146,15 +155,13 @@ const mutationType = new GraphQLObjectType({
           return false;
         }
 
-        website.updateByCrawlingParameters(crawlingParameters);
-        const success = await saveWebsite(website);
+        // const success = await updateWebsite(id, websiteParameters);
 
-        if (website.active) {
-          // remove old task
-          await removeTaskById(websiteId);
-        }
+        // if (website.active) {
+        //   await removeTaskById(websiteId);
+        // }
 
-        return success;
+        return true;//success;
       }
     }
   },

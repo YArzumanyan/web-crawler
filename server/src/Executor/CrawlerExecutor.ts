@@ -1,27 +1,31 @@
 import fetch from 'node-fetch';
 import { JSDOM } from 'jsdom';
-import { CustomLock } from './CustomLock.js';
+import { CustomLock } from '../CustomLock.js';
 import { CrawlerPeriodicExecutor } from './CrawlerPeriodicExecutor.js';
-import { CrawlingParametersBuilder } from './CrawlingParametersBuilder.js';
-import { CrawlingParameters } from './CrawlingParameters.js';
-import { CrawlRecord } from './CrawlRecord.js';
-import { Website } from './Website.js';
+import { CrawlRecord } from '../Node/CrawlRecord.js';
+import { Website } from '../Website/Website.js';
+
+export const runningTasks = new Map<number, Website>();
 
 /**
  * Creates a new crawling task, also starts periodic crawling.
  * @param crawlingParameters The parameters for the crawling task.
  * @returns The crawl record.
  */
-function prepareAndRunCrawl(crawlingParameters: CrawlingParameters, owner: Website | null): Promise<CrawlRecord | null> {
-    crawlingParameters.crawlingExecutor = new CrawlerExecutor(crawlingParameters);
-    crawlingParameters.crawlingExecutor.setOwner(owner);
+async function prepareAndRunCrawl(owner: Website): Promise<CrawlRecord | null> {
+    if (runningTasks.has(owner.id!)) {
+        return null;
+    }
 
-    const crawlRecord = crawlingParameters.crawlingExecutor.letsCrawl();
+    owner.crawlingExecutor = new CrawlerExecutor(owner);
+    const crawlRecord = await owner.crawlingExecutor.letsCrawl();
 
-    crawlingParameters.crawlingPeriodicExecutor = new CrawlerPeriodicExecutor(
-        crawlingParameters.crawlingExecutor, crawlingParameters.periodicity
+    owner.crawlingPeriodicExecutor = new CrawlerPeriodicExecutor(
+        owner.crawlingExecutor, owner.periodicity
     );
-    crawlingParameters.crawlingPeriodicExecutor.start();
+    owner.crawlingPeriodicExecutor.start();
+
+    runningTasks.set(owner.id!, owner);
 
     return crawlRecord;
 }
@@ -29,24 +33,23 @@ function prepareAndRunCrawl(crawlingParameters: CrawlingParameters, owner: Websi
 class CrawlerExecutor {
     #crawlExpirationTimeInMs: number = 1000 * 60 * 5;
     private lock: CustomLock;
-    private crawlingParameters: CrawlingParameters;
     private crawlingStartTimeInMs!: number;
     private timeExceeded: boolean = false;
-    private owner: Website | null = null;
+    private website: Website;
     #allFoundMatchedHandledUrls: Record<string, CrawlRecord> = {};
 
-    constructor(crawlingParameters: CrawlingParameters, crawlExpirationTimeInMs: number = 1000 * 60 * 5) {
+    constructor(website: Website, crawlExpirationTimeInMs: number = 1000 * 60 * 5) {
         this.lock = new CustomLock();
         this.#crawlExpirationTimeInMs = crawlExpirationTimeInMs;
-        this.crawlingParameters = crawlingParameters;
+        this.website = website;
     }
 
-    setOwner(owner: Website): void {
-        this.owner = owner;
+    setOwner(website: Website): void {
+        this.website = website;
     }
 
     getOwner(): Website | null {
-        return this.owner;
+        return this.website;
     }
 
     async letsCrawl(): Promise<CrawlRecord | null> {
@@ -57,14 +60,14 @@ class CrawlerExecutor {
         this.#allFoundMatchedHandledUrls = {};
 
         try {
-            const { url, boundaryRegExp } = this.crawlingParameters;
+            const { url, regexp } = this.website;
 
             this.crawlingStartTimeInMs = Date.now();
             this.timeExceeded = false;
 
             let record: CrawlRecord | null;
             try {
-                record = await this.#crawlRecursion(url, boundaryRegExp);
+                record = await this.#crawlRecursion(url, new RegExp(regexp));
             } catch (e) {
                 console.error('Error during crawling: ' + e);
                 return null;
@@ -113,7 +116,7 @@ class CrawlerExecutor {
         const crawlTime = Date.now();
 
         const record: CrawlRecord = new CrawlRecord(
-            url, crawlTime, title || "No title", [], [], this.owner || undefined);
+            url, crawlTime, title || "No title", [], [], this.website || undefined);
 
         this.#allFoundMatchedHandledUrls[url] = record;
 
@@ -150,5 +153,5 @@ class CrawlerExecutor {
 
 export {
     prepareAndRunCrawl as letsCrawl,
-    CrawlingParametersBuilder,
+    CrawlerExecutor
 };

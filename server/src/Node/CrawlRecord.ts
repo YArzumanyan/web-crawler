@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, PrimaryColumn } from "typeorm"
 import 'reflect-metadata';
 import { on } from "events";
-import { Website } from "./Website.js";
+import { Website } from "../Website/Website.js";
 
 @Entity()
 export class CrawlRecord {

@@ -1,7 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, PrimaryColumn } from "typeorm"
 import 'reflect-metadata';
-import { CrawlRecord } from "./CrawlRecord.js";
-import { CrawlingParameters } from "./CrawlingParameters.js";
+import { CrawlRecord } from "../Node/CrawlRecord.js";
+import { CrawlerPeriodicExecutor } from "../Executor/CrawlerPeriodicExecutor.js";
+import { CrawlerExecutor } from "../Executor/CrawlerExecutor.js";
 
 @Entity()
 export class Website {
@@ -17,6 +18,9 @@ export class Website {
     @Column()
     regexp: string;
 
+    @Column()
+    periodicity: number;
+
     @Column('simple-array')
     tags: string[];
 
@@ -26,27 +30,24 @@ export class Website {
     @OneToMany(() => CrawlRecord, crawlRecord => crawlRecord.owner, { onDelete: 'CASCADE' })
     crawlRecords?: CrawlRecord[];
 
-    constructor(label: string, url: string, regexp: string, tags: string[], active: boolean) {
+    crawlingPeriodicExecutor: CrawlerPeriodicExecutor | undefined;
+    crawlingExecutor: CrawlerExecutor | undefined;
+
+    constructor(label: string, url: string, regexp: string, tags: string[], periodicity: number, active: boolean) {
         this.label = label;
         this.url = url;
         this.regexp = regexp;
         this.tags = tags;
+        this.periodicity = periodicity;
         this.active = active;
     }
 
-    update(label: string, url: string, regexp: string, tags: string[], active: boolean) {
+    update(label: string, url: string, regexp: string, tags: string[], periodicity: number, active: boolean) {
         this.label = label;
         this.url = url;
         this.regexp = regexp;
         this.tags = tags;
+        this.periodicity = periodicity;
         this.active = active;
-    }
-
-    updateByCrawlingParameters(crawlingParameters: CrawlingParameters) {
-        this.label = crawlingParameters.label;
-        this.url = crawlingParameters.url;
-        this.regexp = crawlingParameters.boundaryRegExp.source;
-        this.tags = crawlingParameters.tags;
-        this.active = crawlingParameters.isActive;
     }
 }
