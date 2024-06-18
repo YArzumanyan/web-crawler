@@ -6,6 +6,7 @@ import {
   GraphQLNonNull,
   GraphQLBoolean,
   GraphQLInt,
+  GraphQLID,
 } from "graphql";
 import {
   getAllTasks,
@@ -14,7 +15,7 @@ import {
   removeTaskById,
 } from "./CrawlerEntry.js";
 import { CrawlingParametersBuilder } from "./CrawlingParametersBuilder.js";
-import { getAllWebsites, getWebsiteById, saveWebsite } from "./WebsiteEntry.js";
+import { getAllWebsites, getWebsiteById, removeWebsite, saveWebsite } from "./WebsiteEntry.js";
 import { CrawlRecord } from "./CrawlRecord.js";
 
 const nodeType: GraphQLObjectType = new GraphQLObjectType({
@@ -31,7 +32,7 @@ const nodeType: GraphQLObjectType = new GraphQLObjectType({
 const webPageType = new GraphQLObjectType({
   name: "WebPage",
   fields: () => ({
-    id: { type: GraphQLString },
+    id: { type: GraphQLID! },
     label: { type: GraphQLString },
     url: { type: GraphQLString },
     regexp: { type: GraphQLString },
@@ -50,9 +51,9 @@ const queryType = new GraphQLObjectType({
     nodes: {
       type: new GraphQLList(nodeType),
       args: {
-        webPages: { type: new GraphQLList(GraphQLString) },
+        webPages: { type: new GraphQLList(GraphQLID) },
       },
-      resolve: async (root, { webPages }) => {
+      resolve: async (root, { webPages }) : Promise<CrawlRecord[]> => {
         const results = await Promise.all(webPages.map(async (webPage: string) => {
           const crawlRecord = await getCrawlRecordById(webPage)
           if (crawlRecord) {
@@ -66,7 +67,7 @@ const queryType = new GraphQLObjectType({
     website: {
       type: webPageType,
       args: {
-        id: { type: new GraphQLNonNull(GraphQLString) },
+        id: { type: new GraphQLNonNull(GraphQLID) },
       },
       resolve: async (root, { id }) => {
         const website = await getWebsiteById(id);
@@ -107,15 +108,55 @@ const mutationType = new GraphQLObjectType({
       },
     },
     deleteTask: {
-      type: GraphQLString,
+      type: GraphQLBoolean,
       args: {
         id: { type: new GraphQLNonNull(GraphQLString) },
       },
       resolve: async (root, { id }) => {
-        const success = await removeTaskById(id);
-        return success ? "Task deleted successfully" : "Task deletion failed";
+        const success = await removeWebsite(id);
+        return success;
       },
     },
+    updateTask: {
+      type: webPageType,
+      args: {
+        websiteId: { type: new GraphQLNonNull(GraphQLString) },
+        url: { type: new GraphQLNonNull(GraphQLString) },
+        boundaryRegExp: { type: new GraphQLNonNull(GraphQLString) },
+        label: { type: new GraphQLNonNull(GraphQLString) },
+        tags: { type: new GraphQLList(GraphQLString) },
+        periodicity: { type: new GraphQLNonNull(GraphQLInt) },
+        active: { type: new GraphQLNonNull(GraphQLBoolean) },
+      },
+      resolve: async (
+        root,
+        { websiteId, url, boundaryRegExp, label, tags, periodicity, active = true }
+      ) => {
+        const crawlingParameters = new CrawlingParametersBuilder()
+          .setUrl(url)
+          .setBoundaryRegExp(new RegExp(boundaryRegExp))
+          .setLabel(label)
+          .setTags(tags)
+          .setPeriodInMs(periodicity)
+          .setIsActive(active)
+          .build();
+
+        const website = await getWebsiteById(websiteId);
+        if (!website) {
+          return false;
+        }
+
+        website.updateByCrawlingParameters(crawlingParameters);
+        const success = await saveWebsite(website);
+
+        if (website.active) {
+          // remove old task
+          await removeTaskById(websiteId);
+        }
+
+        return success;
+      }
+    }
   },
 });
 

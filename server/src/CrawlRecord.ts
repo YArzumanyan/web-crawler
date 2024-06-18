@@ -25,15 +25,11 @@ export class CrawlRecord {
 
     matchLinksRecord: CrawlRecord[];
 
-    @Column('simple-array')
-    notMatchLinks: string[];
-
     constructor(url: string, 
         crawlTime: number, 
         title: string, 
         matchLinksRecordIds: string[],
         matchLinksRecord: CrawlRecord[],
-        notMatchLinks: string[],
         owner?: Website) {
         this.url = url;
         this.crawlTime = crawlTime;
@@ -41,6 +37,5 @@ export class CrawlRecord {
         this.owner = owner;
         this.matchLinksRecordIds = matchLinksRecordIds;
         this.matchLinksRecord = matchLinksRecord;
-        this.notMatchLinks = notMatchLinks;
     }
 }

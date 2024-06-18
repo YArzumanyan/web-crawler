@@ -161,7 +161,7 @@ class DatabaseEntry {
         return record || null;
     }
 
-    async saveWebsite(website: Website): Promise<string> {
+    async saveWebsite(website: Website): Promise<number> {
         this.#mutex.acquire();
         const websiteRepository = AppDataSource.getRepository(Website);
         await websiteRepository.save(website);
@@ -170,7 +170,7 @@ class DatabaseEntry {
         return website.id!;
     }
 
-    async removeWebsite(id: string): Promise<boolean> {
+    async removeWebsite(id: number): Promise<boolean> {
         this.#mutex.acquire();
         const websiteRepository = AppDataSource.getRepository(Website);
         const website = await websiteRepository.findOneBy({ id });
@@ -190,7 +190,7 @@ class DatabaseEntry {
         return !!updateResult;
     }
 
-    async getWebsiteById(id: string): Promise<Website | null> {
+    async getWebsiteById(id: number): Promise<Website | null> {
         this.#mutex.acquire();
         if (!id) {
             return null;
@@ -218,7 +218,7 @@ class DatabaseEntry {
         return websites;
     }
 
-    async getWebsiteCrawlRecords(websiteId: string): Promise<CrawlRecord[]> {
+    async getWebsiteCrawlRecords(websiteId: number): Promise<CrawlRecord[]> {
         this.#mutex.acquire();
         const crawlRecordRepository = AppDataSource.getRepository(CrawlRecord);
         const crawlRecords = await crawlRecordRepository.find({where: {
@@ -230,7 +230,7 @@ class DatabaseEntry {
         return crawlRecords;
     }
 
-    async removeWebsiteCrawlRecords(websiteId: string): Promise<boolean> {
+    async removeWebsiteCrawlRecords(websiteId: number): Promise<boolean> {
         this.#mutex.acquire();
         const nodeIds = await this.getWebsiteCrawlRecords(websiteId);
         const crawlRecordRepository = AppDataSource.getRepository(CrawlRecord);
