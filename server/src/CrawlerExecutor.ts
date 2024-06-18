@@ -113,7 +113,7 @@ class CrawlerExecutor {
         const crawlTime = Date.now();
 
         const record: CrawlRecord = new CrawlRecord(
-            url, crawlTime, title || "No title", [], [], [], this.owner || undefined);
+            url, crawlTime, title || "No title", [], [], this.owner || undefined);
 
         this.#allFoundMatchedHandledUrls[url] = record;
 
