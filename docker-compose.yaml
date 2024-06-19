@@ -12,21 +12,22 @@ services:
   #     PROXY_PASS_URL: http://server/api
   #   depends_on:
   #     - server
-  # server:
-  #   image: crawler/server
-  #   build:
-  #     context: ./server/
-  #   ports:
-  #     - 8092:80
-  #   restart: always
-  #   depends_on:
-  #     database: 
-  #       condition: service_healthy
-  #   environment:
-  #     DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-  #     DATABASE_USER: ${DATABASE_USER}
-  #     DATABASE_NAME: ${DATABASE_NAME}
-  #     DATABASE_HOST: database
+  server:
+    image: crawler/server
+    build:
+      context: ./server/
+    ports:
+      - 8092:3000
+    restart: no
+    depends_on:
+      database: 
+        condition: service_healthy
+    environment:
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_HOST: database
+      FRONTEND_URL: http://client/
   database:
     image: crawler/database
     build:
@@ -40,18 +41,19 @@ services:
       POSTGRES_DB: ${DATABASE_NAME}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
-      interval: 30s
+      interval: 1s
       timeout: 30s
       retries: 5
-      start_period: 30s
+      start_period: 1s
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/initial.sql:/docker-entrypoint-initdb.d/initial.sql
   adminer:
-    image: adminer
-    restart: always
-    depends_on:
-      - database
-    ports:
-      - 8090:8080
+   image: adminer
+   restart: always
+   depends_on:
+     - database
+   ports:
+     - 8090:8080
 volumes:
   postgres_data:

@@ -1,0 +1,39 @@
+{
+  "name": "crawlerexecutor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node script.ts",
+    "build": "node script.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@types/cors": "^2.8.17",
+    "async-mutex": "^0.5.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "flatted": "^3.3.1",
+    "graphql": "^16.8.1",
+    "graphql-http": "^1.22.1",
+    "jsdom": "^24.1.0",
+    "node-fetch": "^3.3.2",
+    "pg": "^8.11.5",
+    "reflect-metadata": "^0.2.2",
+    "ruru": "^2.0.0-beta.11",
+    "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/jsdom": "^21.1.6",
+    "@types/node": "^20.12.13",
+    "@types/node-fetch": "^2.6.11",
+    "prisma": "^5.14.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
