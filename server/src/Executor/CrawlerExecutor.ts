@@ -4,8 +4,9 @@ import { CustomLock } from '../CustomLock.js';
 import { CrawlerPeriodicExecutor } from './CrawlerPeriodicExecutor.js';
 import { CrawlRecord } from '../Node/CrawlRecord.js';
 import { Website } from '../Website/Website.js';
+import Dictionary from '../dictionary.js';
 
-export const runningTasks = new Map<number, Website>();
+const runningTasks = Dictionary.getInstance<number, Website>('runningTasks');
 
 /**
  * Creates a new crawling task, also starts periodic crawling.
@@ -116,7 +117,7 @@ class CrawlerExecutor {
         const crawlTime = Date.now();
 
         const record: CrawlRecord = new CrawlRecord(
-            url, crawlTime, title || "No title", [], [], this.website || undefined);
+            url, crawlTime, title || "No title", [], [], this.website);
 
         this.#allFoundMatchedHandledUrls[url] = record;
 

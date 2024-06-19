@@ -30,7 +30,7 @@ export class Website {
     @OneToMany(() => CrawlRecord, crawlRecord => crawlRecord.owner, { onDelete: 'CASCADE' })
     crawlRecords?: CrawlRecord[];
 
-    crawlingPeriodicExecutor: CrawlerPeriodicExecutor | undefined;
+    crawlingPeriodicExecutor: CrawlerPeriodicExecutor | undefined; 
     crawlingExecutor: CrawlerExecutor | undefined;
 
     constructor(label: string, url: string, regexp: string, tags: string[], periodicity: number, active: boolean) {
@@ -49,5 +49,14 @@ export class Website {
         this.tags = tags;
         this.periodicity = periodicity;
         this.active = active;
+    }
+
+    updateByWebsite(website: Website) {
+        this.label = website.label;
+        this.url = website.url;
+        this.regexp = website.regexp;
+        this.tags = website.tags;
+        this.periodicity = website.periodicity;
+        this.active = website.active;
     }
 }

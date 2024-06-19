@@ -46,8 +46,8 @@ const allTasks = getAllTasks();
 console.log(allTasks);
 
 
-record.then((r: CrawlRecord | null) => {
-    console.log('LETS GET TASK BY PARAMS');
+// record.then((r: CrawlRecord | null) => {
+//     console.log('LETS GET TASK BY PARAMS');
 
     // if (r) {
     //     printRecords(r);
@@ -62,7 +62,7 @@ record.then((r: CrawlRecord | null) => {
     //         removeTask(crawlingParameters);
     //     });
     // }
-});
+// });
 
 // if the layer is too huge, it will print only the first 5 links
 function printRecords(record: CrawlRecord) {

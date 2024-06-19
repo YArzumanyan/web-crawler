@@ -20,7 +20,7 @@ export class CrawlRecord {
     @Column('simple-array')
     matchLinksRecordIds: string[];
 
-    @ManyToOne(() => Website, website => website.crawlRecords, { cascade: true })
+    @ManyToOne(() => Website, website => website.crawlRecords, { cascade: true})
     owner?: Website;
 
     matchLinksRecord: CrawlRecord[];

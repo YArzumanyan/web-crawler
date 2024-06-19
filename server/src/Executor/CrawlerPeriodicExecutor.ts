@@ -21,7 +21,6 @@ export class CrawlerPeriodicExecutor {
         }
         this.interval = setInterval(() => {
             const owner = this.crawlerExecutor.getOwner();
-
             if (!owner) {
                 return;
             }

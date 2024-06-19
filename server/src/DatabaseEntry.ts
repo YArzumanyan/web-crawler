@@ -215,6 +215,18 @@ class DatabaseEntry {
         return websites;
     }
 
+    async getActiveWebsites(): Promise<Website[]> {
+        this.#mutex.acquire();
+        const websiteRepository = AppDataSource.getRepository(Website);
+        const websites = await websiteRepository.find({
+            where: {
+                active: true
+            }
+        });
+        this.#mutex.release();
+        return websites;
+    }
+
     async getWebsiteCrawlRecords(websiteId: number): Promise<CrawlRecord[]> {
         this.#mutex.acquire();
         const crawlRecordRepository = AppDataSource.getRepository(CrawlRecord);

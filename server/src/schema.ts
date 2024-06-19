@@ -9,13 +9,20 @@ import {
   GraphQLID,
 } from "graphql";
 import {
-  getAllTasks,
   getCrawlRecord,
   newTask,
+  removeTask,
+  removeTaskById,
+  updateTask,
 } from "./Node/CrawlerEntry.js";
 import { getAllWebsites, getWebsiteById, removeWebsite, saveWebsite } from "./Website/WebsiteEntry.js";
 import { CrawlRecord } from "./Node/CrawlRecord.js";
 import { WebsiteBuilder } from "./Website/WebsiteBuilder.js";
+import Dictionary from "./dictionary.js";
+import { run } from "ruru/cli";
+import { Website } from "./Website/Website.js";
+
+const runningTasks = Dictionary.getInstance<number, Website>('runningTasks');
 
 const nodeType: GraphQLObjectType = new GraphQLObjectType({
   name: "Node",
@@ -104,7 +111,9 @@ const mutationType = new GraphQLObjectType({
           .build();
 
         const website = await saveWebsite(websiteParameters);
-        await newTask(website);
+        if (website.active) {
+          await newTask(website);
+        }
 
         return website;
       },
@@ -112,17 +121,61 @@ const mutationType = new GraphQLObjectType({
     deleteTask: {
       type: GraphQLBoolean,
       args: {
-        id: { type: new GraphQLNonNull(GraphQLString) },
+        id: { type: new GraphQLNonNull(GraphQLID) },
       },
       resolve: async (root, { id }) => {
-        const success = await removeWebsite(id);
-        return success;
+        const success = await removeTaskById(id);
+        if (!success) {
+          return false;
+        }
+
+        return await removeWebsite(id);
+      },
+    },
+    stopTask: {
+      type: GraphQLBoolean,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) },
+      },
+      resolve: async (root, { id }) => {
+        const website = runningTasks.get(id);
+        if (!website) {
+          return false;
+        }
+
+        const success = await removeTask(website);
+        if (!success) {
+          return false;
+        }
+
+        return true;
+      },
+    },
+    startTask: {
+      type: GraphQLBoolean,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) },
+      },
+      resolve: async (root, { id }) => {
+        const website = await getWebsiteById(id);
+        console.log(website);
+        if (!website) {
+          return false;
+        }
+
+        const task = await newTask(website);
+        console.log(task)
+        if (!task) {
+          return false;
+        }
+
+        return true;
       },
     },
     getRunningTasks: {
       type: new GraphQLList(webPageType),
-      resolve: async () => {
-        const tasks = await getAllTasks();
+      resolve: () => {
+        const tasks = runningTasks.values();
         return tasks;
       },
     },
@@ -150,18 +203,12 @@ const mutationType = new GraphQLObjectType({
           .setIsActive(active)
           .build();
 
-        const website = await getWebsiteById(websiteId);
+        const website = await saveWebsite(websiteParameters);
         if (!website) {
           return false;
         }
 
-        // const success = await updateWebsite(id, websiteParameters);
-
-        // if (website.active) {
-        //   await removeTaskById(websiteId);
-        // }
-
-        return true;//success;
+        return await updateTask(website);
       }
     }
   },

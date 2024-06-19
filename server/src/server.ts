@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { createHandler } from 'graphql-http/lib/use/express'
 import { schema } from './schema.js';
-import { ruruHTML } from "ruru/server"
+import { ruruHTML } from "ruru/server";
 
 const app = express();
 const port = 3000;
