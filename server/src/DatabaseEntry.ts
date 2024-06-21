@@ -30,6 +30,7 @@ class DatabaseEntry {
         var allRecords: CrawlRecord[] = [];
         var allFoundUrls: any = [];
         var queue: CrawlRecord[] = [];
+        var owner = record.owner;
         queue.push(record);
         while (queue.length > 0) {
             const next = queue.shift();
@@ -40,7 +41,7 @@ class DatabaseEntry {
 
                 allFoundUrls[next.url!] = next;
                 allRecords.push(next);
-
+                
                 await AppDataSource.getRepository(CrawlRecord).save(next);
 
                 for (const child of next.matchLinksRecord) {
@@ -56,7 +57,7 @@ class DatabaseEntry {
             for(const child of record.matchLinksRecord){
                 record.matchLinksRecordIds.push(child.id!);
             }
-            await AppDataSource.getRepository(CrawlRecord).update(record.id!, {matchLinksRecordIds: record.matchLinksRecordIds});
+            await AppDataSource.getRepository(CrawlRecord).update(record.id!, {matchLinksRecordIds: record.matchLinksRecordIds, owner: owner});
         }
 
         this.#mutex.release();

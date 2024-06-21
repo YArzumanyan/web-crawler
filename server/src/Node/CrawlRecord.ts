@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, PrimaryColumn } from "typeorm"
 import 'reflect-metadata';
-import { on } from "events";
 import { Website } from "../Website/Website.js";
 
 @Entity()
@@ -20,8 +19,8 @@ export class CrawlRecord {
     @Column('simple-array')
     matchLinksRecordIds: string[];
 
-    @ManyToOne(() => Website, website => website.crawlRecords, { cascade: true})
-    owner?: Website;
+    @ManyToOne(() => Website, website => website.crawlRecords, { cascade: ["insert", "update"]})
+    owner: Website;
 
     matchLinksRecord: CrawlRecord[];
 
@@ -30,7 +29,7 @@ export class CrawlRecord {
         title: string, 
         matchLinksRecordIds: string[],
         matchLinksRecord: CrawlRecord[],
-        owner?: Website) {
+        owner: Website) {
         this.url = url;
         this.crawlTime = crawlTime;
         this.title = title;

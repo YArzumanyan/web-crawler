@@ -27,7 +27,7 @@ export class Website {
     @Column()
     active: boolean;
 
-    @OneToMany(() => CrawlRecord, crawlRecord => crawlRecord.owner, { onDelete: 'CASCADE' })
+    @OneToMany(() => CrawlRecord, crawlRecord => crawlRecord.owner, { cascade: true, onDelete: 'CASCADE' })
     crawlRecords?: CrawlRecord[];
 
     crawlingPeriodicExecutor: CrawlerPeriodicExecutor | undefined; 

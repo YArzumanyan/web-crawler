@@ -25,7 +25,7 @@ export class CrawlerPeriodicExecutor {
                 return;
             }
 
-            databaseEntry.removeWebsiteCrawlRecords(this.crawlerExecutor.getOwner().id!);
+            databaseEntry.removeWebsiteCrawlRecords(owner.id!);
             this.crawlerExecutor.letsCrawl().then((newRecord: CrawlRecord | null) => {
                 if (newRecord) {
                     databaseEntry.saveCrawlRecord(newRecord);
