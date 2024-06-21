@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   # client:
   #   image: crawler/client
@@ -18,7 +17,7 @@ services:
       context: ./server/
     ports:
       - 8092:3000
-    restart: no
+    restart: always
     depends_on:
       database: 
         condition: service_healthy

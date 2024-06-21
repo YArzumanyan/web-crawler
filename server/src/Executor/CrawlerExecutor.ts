@@ -10,7 +10,7 @@ const runningTasks = Dictionary.getInstance<number, Website>('runningTasks');
 
 /**
  * Creates a new crawling task, also starts periodic crawling.
- * @param crawlingParameters The parameters for the crawling task.
+ * @param owner The parameters for the crawling task.
  * @returns The crawl record.
  */
 async function prepareAndRunCrawl(owner: Website): Promise<CrawlRecord | null> {
@@ -49,7 +49,7 @@ class CrawlerExecutor {
         this.website = website;
     }
 
-    getOwner(): Website | null {
+    getOwner(): Website {
         return this.website;
     }
 

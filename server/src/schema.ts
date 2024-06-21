@@ -31,7 +31,7 @@ const nodeType: GraphQLObjectType = new GraphQLObjectType({
     url: { type: GraphQLString },
     crawlTime: { type: GraphQLString },
     links: { type: new GraphQLList(nodeType) },
-    owner: { type: GraphQLString },
+    owner: { type: GraphQLID },
   }),
 });
 
@@ -44,7 +44,7 @@ const webPageType = new GraphQLObjectType({
     regexp: { type: GraphQLString },
     tags: { type: new GraphQLList(GraphQLString) },
     periodicity: { type: GraphQLInt },
-    active: { type: GraphQLString },
+    active: { type: GraphQLBoolean },
   }),
 });
 
@@ -95,7 +95,7 @@ const mutationType = new GraphQLObjectType({
         label: { type: new GraphQLNonNull(GraphQLString) },
         tags: { type: new GraphQLList(GraphQLString) },
         periodicity: { type: new GraphQLNonNull(GraphQLInt) },
-        active: { type: new GraphQLNonNull(GraphQLBoolean) },
+        active: { type: GraphQLBoolean },
       },
       resolve: async (
         root,
@@ -138,17 +138,12 @@ const mutationType = new GraphQLObjectType({
         id: { type: new GraphQLNonNull(GraphQLID) },
       },
       resolve: async (root, { id }) => {
-        const website = runningTasks.get(id);
+        const website = await getWebsiteById(id);
         if (!website) {
           return false;
         }
 
-        const success = await removeTask(website);
-        if (!success) {
-          return false;
-        }
-
-        return true;
+        return await removeTask(website);
       },
     },
     startTask: {
@@ -158,18 +153,12 @@ const mutationType = new GraphQLObjectType({
       },
       resolve: async (root, { id }) => {
         const website = await getWebsiteById(id);
-        console.log(website);
         if (!website) {
           return false;
         }
 
-        const task = await newTask(website);
-        console.log(task)
-        if (!task) {
-          return false;
-        }
-
-        return true;
+        website.active = true;
+        return await updateTask(website);
       },
     },
     getRunningTasks: {

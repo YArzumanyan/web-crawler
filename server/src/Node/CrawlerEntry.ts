@@ -61,7 +61,6 @@ export async function removeTask(website: Website): Promise<boolean> {
     runningTasks.delete(website.id);
     website.active = false;
     await databaseEntry.updateWebsite(website);
-    // databaseEntry.removeWebsite(website.id);
     
     return true;
 }
@@ -76,6 +75,7 @@ export async function updateTask(website: Website): Promise<boolean> {
     const oldTask = runningTasks.get(website.id);
     oldTask?.crawlingPeriodicExecutor?.stop();
     runningTasks.delete(website.id);
+
     if (website.active) {
         await newTask(website);
     }
