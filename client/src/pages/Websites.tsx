@@ -1,4 +1,5 @@
 import { Link, useLoaderData } from "react-router-dom";
+import React from "react";
 import {
   DataGrid,
   GridColDef,
@@ -13,38 +14,28 @@ import { useEffect, useState } from "react";
 import { Container, Stack, Switch, Typography } from "@mui/material";
 import { Pause, PlayArrow } from "@mui/icons-material";
 import { nodes } from "../temp/nodes";
-
-type Node = {
-  id: number;
-  title: string;
-  crawlTime: number;
-  links: any;
-  owner: number;
-}
-
-type Website = {
-  id: number;
-  label: string;
-  url: string;
-  regexp: string;
-  tags: string[];
-  active: boolean;
-};
-
-interface WebsiteWithNodes extends Website {
-  nodes: Node[];
-}
+import { Website, WebsiteWithNodes } from "../types";
+import { getWebsites } from "../api/website";
 
 export const Websites: React.FC = () => {
   // Ideally websites will be passed down with their corresponding nodes
-  const [websites, setWebsites] = useState<WebsiteWithNodes[]>((useLoaderData() as Website[]).map(web => ({...web, nodes: []})));
+  const [websites] = useState<WebsiteWithNodes[]>((useLoaderData() as Website[]).map(web => ({...web, nodes: []})));
   const [rows, setRows] = useState<Record<number, Website>>({});
   const [graphView, setGraphView] = useState<boolean>(false);
   const apiRef = useGridApiRef();
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getWebsites();
+      console.log(data);
+    }
+
+    fetchData();
+  }, []);
+
   // For testing purposes
   useEffect(() => {
-    let dict: Record<number, WebsiteWithNodes> = {};
+    const dict: Record<number, WebsiteWithNodes> = {};
     websites.forEach(web => {
       dict[web.id] = web
     })
@@ -129,6 +120,7 @@ export const Websites: React.FC = () => {
         return [
           toggleIcon,
           <Typography
+          key={'view' + row.id}
             component={Link}
             to={"/websites/" + row.id}
             aria-label="View"
@@ -137,6 +129,7 @@ export const Websites: React.FC = () => {
             <Info />
           </Typography>,
           <Typography
+            key={'edit' + row.id}
             component={Link}
             to={"/websites/" + row.id + "/edit"}
             aria-label="Edit"
@@ -145,6 +138,7 @@ export const Websites: React.FC = () => {
             <EditIcon />
           </Typography>,
           <Typography
+            key={'delete' + row.id}
             component={Link}
             to=""
             onClick={() => handleDeleteRow(row.id)}
