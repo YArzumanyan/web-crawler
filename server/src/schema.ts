@@ -31,7 +31,7 @@ const nodeType: GraphQLObjectType = new GraphQLObjectType({
     url: { type: GraphQLString },
     crawlTime: { type: GraphQLString },
     links: { type: new GraphQLList(nodeType) },
-    owner: { type: GraphQLString },
+    owner: { type: GraphQLID },
   }),
 });
 
@@ -44,7 +44,7 @@ const webPageType = new GraphQLObjectType({
     regexp: { type: GraphQLString },
     tags: { type: new GraphQLList(GraphQLString) },
     periodicity: { type: GraphQLInt },
-    active: { type: GraphQLString },
+    active: { type: GraphQLBoolean },
   }),
 });
 

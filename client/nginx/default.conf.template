@@ -7,7 +7,7 @@ server {
         index index.html index.htm;
     }
 
-    location /api {
-        proxy_pass ${PROXY};
+    location /graphql {
+        proxy_pass ${PROXY_PASS_URL};
     }
 }

@@ -1,17 +1,17 @@
 version: '3.8'
 services:
-  # client:
-  #   image: crawler/client
-  #   build:
-  #     context: ./client/
-  #   restart: always
-  #   ports:
-  #     - 8080:80
-  #   environment:
-  #     SERVER_URL: server
-  #     PROXY_PASS_URL: http://server/api
-  #   depends_on:
-  #     - server
+  client:
+    image: crawler/client
+    build:
+      context: ./client/
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      SERVER_URL: server
+      PROXY_PASS_URL: http://server/graphql
+    depends_on:
+      - server
   server:
     image: crawler/server
     build:
