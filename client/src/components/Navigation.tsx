@@ -24,7 +24,7 @@ export const Navigation = () => {
     setAnchorElNav(null);
   };
 
-  const pages = [{label: 'Overview', link: '/overview'}, {label: 'Websites', link: '/websites'}];
+  const pages = [{label: 'Overview', link: '/'}];
 
   return (
     <AppBar position="static" style={{marginBottom: 8}}>

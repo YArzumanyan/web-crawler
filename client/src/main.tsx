@@ -1,4 +1,3 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
@@ -11,6 +10,8 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
+import React from "react";
+import { getWebsites } from "./api/website.ts";
 
 const router = createBrowserRouter([
   {
@@ -19,10 +20,10 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       {
-        path: "websites",
+        path: "/",
         element: <Websites />,
         loader: async () => {
-          return await websites
+          return await getWebsites();
         }
       },
       {

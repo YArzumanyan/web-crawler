@@ -10,6 +10,7 @@ import {
 } from "graphql";
 import {
   getCrawlRecord,
+  getCrawlRecords,
   newTask,
   removeTask,
   removeTaskById,
@@ -32,6 +33,8 @@ const nodeType: GraphQLObjectType = new GraphQLObjectType({
     crawlTime: { type: GraphQLString },
     links: { type: new GraphQLList(nodeType) },
     owner: { type: GraphQLID },
+    id: { type: GraphQLID },
+    matchLinksRecordIds: { type: new GraphQLList(GraphQLString) }
   }),
 });
 
@@ -45,6 +48,7 @@ const webPageType = new GraphQLObjectType({
     tags: { type: new GraphQLList(GraphQLString) },
     periodicity: { type: GraphQLInt },
     active: { type: GraphQLBoolean },
+    crawlRecords: { type: new GraphQLList(nodeType) }
   }),
 });
 
@@ -80,6 +84,23 @@ const queryType = new GraphQLObjectType({
         const website = await getWebsiteById(id);
         return website;
       },
+    },
+    runningTasks: {
+      type: new GraphQLList(webPageType),
+      resolve: () => {
+        const tasks = runningTasks.values();
+        return tasks;
+      },
+    },
+    websiteNodes: {
+      type: new GraphQLList(nodeType),
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) },
+      },
+      resolve: async (root, {id}) => {
+        const nodes = await getCrawlRecords(id);
+        return nodes;
+      }
     },
   },
 });
@@ -159,13 +180,6 @@ const mutationType = new GraphQLObjectType({
 
         website.active = true;
         return await updateTask(website);
-      },
-    },
-    getRunningTasks: {
-      type: new GraphQLList(webPageType),
-      resolve: () => {
-        const tasks = runningTasks.values();
-        return tasks;
       },
     },
     updateTask: {

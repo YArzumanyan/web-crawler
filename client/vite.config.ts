@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  console.log(env.SERVER_URL);
   return {
     base: "/",
     plugins: [react()],
@@ -13,9 +14,10 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         "/graphql": {
-          target: env.SERVER_URL,
+          target: "http://localhost:3000", // env.SERVER_URL,
           changeOrigin: true,
-          secure: false
+          secure: false,
+          rewrite: (path) => path.replace(/^\/graphql/, '/graphql')
         },
       },
     }

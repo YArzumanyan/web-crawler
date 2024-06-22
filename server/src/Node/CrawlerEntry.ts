@@ -45,6 +45,10 @@ export async function getCrawlRecord(id: string): Promise<CrawlRecord | null> {
     return await databaseEntry.getCrawlRecord(id);
 }
 
+export async function getCrawlRecords(websiteId: number): Promise<CrawlRecord[]> {
+    return await databaseEntry.getWebsiteCrawlRecords(websiteId);
+} 
+
 /**
  * @returns true if the task was removed, false otherwise
  * false can be returned if the task was not found in the local memory

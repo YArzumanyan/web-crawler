@@ -2,7 +2,7 @@ export type Node = {
   id: number;
   title: string;
   crawlTime: number;
-  links: any;
+  links: Node[];
   owner: number;
 };
 
@@ -17,5 +17,5 @@ export type Website = {
 };
 
 export interface WebsiteWithNodes extends Website {
-  nodes: Node[];
+  crawlRecords: Node[];
 }

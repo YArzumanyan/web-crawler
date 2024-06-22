@@ -12,33 +12,20 @@ import Chip from "@mui/joy/Chip";
 import { useEffect, useState } from "react";
 import { Container, Stack, Switch, Typography } from "@mui/material";
 import { Pause, PlayArrow } from "@mui/icons-material";
-import { nodes } from "../temp/nodes";
 import { Website, WebsiteWithNodes } from "../types";
-import { getWebsites } from "../api/website";
+import { startTask, stopTask } from "../api/website";
 
 export const Websites: React.FC = () => {
-  // Ideally websites will be passed down with their corresponding nodes
-  const [websites] = useState<WebsiteWithNodes[]>((useLoaderData() as Website[]).map(web => ({...web, nodes: []})));
+  const [websites] = useState<WebsiteWithNodes[]>((useLoaderData() as WebsiteWithNodes[]));
   const [rows, setRows] = useState<Record<number, Website>>({});
   const [graphView, setGraphView] = useState<boolean>(false);
   const apiRef = useGridApiRef();
 
   useEffect(() => {
-    const fetchData = async () => {
-      const data = await getWebsites();
-      console.log(data);
-    }
-
-    fetchData();
-  }, []);
-
-  // For testing purposes
-  useEffect(() => {
     const dict: Record<number, WebsiteWithNodes> = {};
     websites.forEach(web => {
       dict[web.id] = web
     })
-    nodes.map(node => dict[node.id] ? dict[node.id].nodes.push(node) : null)
     setRows(dict)
   }, [])
 
@@ -49,12 +36,17 @@ export const Websites: React.FC = () => {
     apiRef.current.updateRows([{ id, _action: "delete" }]);
   };
 
-  const handleToggleRow = (id: GridRowId, active: boolean) => {
-    apiRef.current.updateRows([{ id, active: !active }]);
+  const handleToggleRow = async (id: GridRowId, active: boolean) => {
+    if (active) {
+      await startTask(id);
+    } else {
+      await stopTask(id);
+    }
+    apiRef.current.updateRows([{ id, active }]);
   };
 
   const columns: GridColDef[] = [
-    //   { field: 'id', headerName: 'ID', width: 50 },
+    { field: 'id', headerName: 'ID', width: 50 },
     { field: "label", headerName: "Label", width: 200 },
     { field: "url", headerName: "URL", flex: 1 },
     // { field: 'regexp', headerName: 'RegExp', width: 300 },
@@ -62,21 +54,7 @@ export const Websites: React.FC = () => {
       field: "tags",
       headerName: "Tags",
       width: 200,
-      // valueFormatter: (value, row) => row.tags.join(", ")
-      renderCell: () => (
-        <div
-          style={{
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-          }}
-        >
-          {["tag1", "tag2"].map((tag) => (
-            <Chip key={"chip" + tag} variant="soft">{tag}</Chip>
-          ))}
-        </div>
-      ),
+      valueFormatter: (_, row) => row.tags.join(", ")
     },
     {
       field: "active",
@@ -98,7 +76,7 @@ export const Websites: React.FC = () => {
           <Typography
             component={Link}
             to=""
-            onClick={() => handleToggleRow(row.id, row.active)}
+            onClick={async () => await handleToggleRow(row.id, true)}
             aria-label="Enable"
             color="inherit"
           >
@@ -108,7 +86,7 @@ export const Websites: React.FC = () => {
           <Typography
             component={Link}
             to=""
-            onClick={() => handleToggleRow(row.id, row.active)}
+            onClick={async () => await handleToggleRow(row.id, false)}
             aria-label="Disable"
             color="inherit"
           >

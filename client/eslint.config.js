@@ -18,5 +18,12 @@ export default [
     files: ["**/*.jsx"],
     languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
   },
-  pluginReactConfig,
+  {
+    ...pluginReactConfig,
+    rules: {
+      ...pluginReactConfig.rules,
+      'react/react-in-jsx-scope': 0,
+      'react/jsx-uses-react': 0
+    }
+  }
 ];

@@ -11,9 +11,34 @@ export const getWebsites = async (): Promise<Website[]> => {
       periodicity
       label
       id
+      crawlRecords {
+        id
+        url
+        title
+        matchLinksRecordIds
+        crawlTime
+      }
     }
   }`;
 
   const res = await fetchApi(query);
-  return res.data;
+  return res.data.websites;
 };
+
+export const startTask = async (id: number | string) : Promise<boolean> => {
+  const mutation = `mutation {
+    startTask(id: ${id})
+  }`;
+
+  const res = await fetchApi(mutation);
+  return res.data.startTask;
+}
+
+export const stopTask = async (id: number | string) : Promise<boolean> => {
+  const mutation = `mutation {
+    stopTask(id: ${id})
+  }`;
+
+  const res = await fetchApi(mutation);
+  return res.data.stopTask;
+}
