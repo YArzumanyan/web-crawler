@@ -4,7 +4,6 @@ import App from "./App.tsx";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import ErrorPage from "./pages/Error.tsx";
 import { Websites } from "./pages/Websites.tsx";
-import { websites } from "./temp/websites.ts";
 
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
