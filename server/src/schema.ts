@@ -16,14 +16,20 @@ import {
   removeTaskById,
   updateTask,
 } from "./Node/CrawlerEntry.js";
-import { getAllWebsites, getWebsiteById, removeWebsite, saveWebsite } from "./Website/WebsiteEntry.js";
+import {
+  getAllWebsites,
+  getWebsiteById,
+  removeWebsite,
+  saveWebsite,
+  updateWebsite,
+} from "./Website/WebsiteEntry.js";
 import { CrawlRecord } from "./Node/CrawlRecord.js";
 import { WebsiteBuilder } from "./Website/WebsiteBuilder.js";
 import Dictionary from "./dictionary.js";
 import { run } from "ruru/cli";
 import { Website } from "./Website/Website.js";
 
-const runningTasks = Dictionary.getInstance<number, Website>('runningTasks');
+const runningTasks = Dictionary.getInstance<number, Website>("runningTasks");
 
 const nodeType: GraphQLObjectType = new GraphQLObjectType({
   name: "Node",
@@ -34,7 +40,7 @@ const nodeType: GraphQLObjectType = new GraphQLObjectType({
     links: { type: new GraphQLList(nodeType) },
     owner: { type: GraphQLID },
     id: { type: GraphQLID },
-    matchLinksRecordIds: { type: new GraphQLList(GraphQLString) }
+    matchLinksRecordIds: { type: new GraphQLList(GraphQLString) },
   }),
 });
 
@@ -48,7 +54,7 @@ const webPageType = new GraphQLObjectType({
     tags: { type: new GraphQLList(GraphQLString) },
     periodicity: { type: GraphQLInt },
     active: { type: GraphQLBoolean },
-    crawlRecords: { type: new GraphQLList(nodeType) }
+    crawlRecords: { type: new GraphQLList(nodeType) },
   }),
 });
 
@@ -64,16 +70,7 @@ const queryType = new GraphQLObjectType({
       args: {
         webPages: { type: new GraphQLList(GraphQLID) },
       },
-      resolve: async (root, { webPages }) : Promise<CrawlRecord[]> => {
-        const results = await Promise.all(webPages.map(async (webPage: string) => {
-          const crawlRecord = await getCrawlRecord(webPage)
-          if (crawlRecord) {
-            return crawlRecord;
-          }
-        }));
-        
-        return results.filter((record: CrawlRecord | null) => record !== null);
-      },
+      resolve: (_, { webPages }) => getCrawlRecords(webPages),
     },
     website: {
       type: webPageType,
@@ -97,10 +94,10 @@ const queryType = new GraphQLObjectType({
       args: {
         id: { type: new GraphQLNonNull(GraphQLID) },
       },
-      resolve: async (root, {id}) => {
+      resolve: async (root, { id }) => {
         const nodes = await getCrawlRecords(id);
         return nodes;
-      }
+      },
     },
   },
 });
@@ -179,13 +176,14 @@ const mutationType = new GraphQLObjectType({
         }
 
         website.active = true;
-        return await updateTask(website);
+        const web = await saveWebsite(website);
+        return await updateTask(web);
       },
     },
     updateTask: {
       type: webPageType,
       args: {
-        websiteId: { type: new GraphQLNonNull(GraphQLString) },
+        id: { type: new GraphQLNonNull(GraphQLID) },
         url: { type: new GraphQLNonNull(GraphQLString) },
         boundaryRegExp: { type: new GraphQLNonNull(GraphQLString) },
         label: { type: new GraphQLNonNull(GraphQLString) },
@@ -195,7 +193,7 @@ const mutationType = new GraphQLObjectType({
       },
       resolve: async (
         root,
-        { websiteId, url, boundaryRegExp, label, tags, periodicity, active = true }
+        { id, url, boundaryRegExp, label, tags, periodicity, active }
       ) => {
         const websiteParameters = new WebsiteBuilder()
           .setUrl(url)
@@ -204,16 +202,17 @@ const mutationType = new GraphQLObjectType({
           .setTags(tags)
           .setPeriodInMs(periodicity)
           .setIsActive(active)
+          .setId(id)
           .build();
 
-        const website = await saveWebsite(websiteParameters);
+        const website = await updateWebsite(websiteParameters);
         if (!website) {
           return false;
         }
 
         return await updateTask(website);
-      }
-    }
+      },
+    },
   },
 });
 
