@@ -1,62 +1,90 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, PrimaryColumn } from "typeorm"
-import 'reflect-metadata';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  PrimaryColumn,
+} from "typeorm";
+import "reflect-metadata";
 import { CrawlRecord } from "../Node/CrawlRecord.js";
 import { CrawlerPeriodicExecutor } from "../Executor/CrawlerPeriodicExecutor.js";
 import { CrawlerExecutor } from "../Executor/CrawlerExecutor.js";
 
 @Entity()
 export class Website {
-    @PrimaryGeneratedColumn()
-    id?: number;
+  @PrimaryGeneratedColumn()
+  id?: string;
 
-    @Column()
-    label: string;
+  @Column()
+  label: string;
 
-    @Column()
-    url: string;
+  @Column()
+  url: string;
 
-    @Column()
-    regexp: string;
+  @Column()
+  regexp: string;
 
-    @Column()
-    periodicity: number;
+  @Column()
+  periodicity: number;
 
-    @Column('simple-array')
-    tags: string[];
+  @Column("simple-array")
+  tags: string[];
 
-    @Column()
-    active: boolean;
+  @Column()
+  active: boolean;
 
-    @OneToMany(() => CrawlRecord, crawlRecord => crawlRecord.owner, { cascade: true, onDelete: 'CASCADE' })
-    crawlRecords?: CrawlRecord[];
+  @OneToMany(() => CrawlRecord, (crawlRecord) => crawlRecord.owner, {
+    cascade: ["insert", "update", "remove"],
+    onDelete: "CASCADE",
+  })
+  crawlRecords?: CrawlRecord[];
 
-    crawlingPeriodicExecutor: CrawlerPeriodicExecutor | undefined; 
-    crawlingExecutor: CrawlerExecutor | undefined;
+  crawlingPeriodicExecutor: CrawlerPeriodicExecutor | undefined;
+  crawlingExecutor: CrawlerExecutor | undefined;
 
-    constructor(label: string, url: string, regexp: string, tags: string[], periodicity: number, active: boolean) {
-        this.label = label;
-        this.url = url;
-        this.regexp = regexp;
-        this.tags = tags;
-        this.periodicity = periodicity;
-        this.active = active;
-    }
+  constructor(
+    label: string,
+    url: string,
+    regexp: string,
+    tags: string[],
+    periodicity: number,
+    active: boolean
+  ) {
+    this.label = label;
+    this.url = url;
+    this.regexp = regexp;
+    this.tags = tags;
+    this.periodicity = periodicity;
+    this.active = active;
+  }
 
-    update(label: string, url: string, regexp: string, tags: string[], periodicity: number, active: boolean) {
-        this.label = label;
-        this.url = url;
-        this.regexp = regexp;
-        this.tags = tags;
-        this.periodicity = periodicity;
-        this.active = active;
-    }
+  update(
+    label: string,
+    url: string,
+    regexp: string,
+    tags: string[],
+    periodicity: number,
+    active: boolean
+  ) {
+    this.label = label;
+    this.url = url;
+    this.regexp = regexp;
+    this.tags = tags;
+    this.periodicity = periodicity;
+    this.active = active;
+  }
 
-    updateByWebsite(website: Website) {
-        this.label = website.label;
-        this.url = website.url;
-        this.regexp = website.regexp;
-        this.tags = website.tags;
-        this.periodicity = website.periodicity;
-        this.active = website.active;
-    }
+  updateByWebsite(website: Website) {
+    this.label = website.label;
+    this.url = website.url;
+    this.regexp = website.regexp;
+    this.tags = website.tags;
+    this.periodicity = website.periodicity;
+    this.active = website.active;
+  }
+
+  setId(id: string) {
+    this.id = id;
+  }
 }
