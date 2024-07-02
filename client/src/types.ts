@@ -1,16 +1,27 @@
 export type Node = {
-  id: number;
+  id: string;
   title: string;
+  url: string;
   crawlTime: number;
   links: Node[];
-  owner: number;
+  matchLinksRecordIds: string[];
+  owner: Website;
 };
 
 export type Website = {
-  id: number;
+  id: string;
   label: string;
   url: string;
   regexp: string;
+  tags: string[];
+  active: boolean;
+  periodicity?: number;
+};
+
+export type WebsiteInput = {
+  label: string;
+  url: string;
+  boundaryRegExp: string;
   tags: string[];
   active: boolean;
   periodicity?: number;

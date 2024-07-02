@@ -1,13 +1,28 @@
-import { Outlet } from "react-router-dom";
-import { Navigation } from "./components/Navigation";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navigation from "./components/common/Navigation";
+import { Container, CssBaseline } from "@mui/material";
+import "./App.module.scss";
+import { GraphProvider } from "./context/GraphContext";
+import { WebsiteProvider } from "./context/WebsiteContext";
+import Websites from "./pages/Websites";
 
-function App() {
+const App: React.FC = () => {
   return (
-    <div className="vh-100">
-      <Navigation />
-      <Outlet />
-    </div> 
-  )
+    <Router>
+      <GraphProvider>
+        <WebsiteProvider>
+          <CssBaseline />
+          <Navigation />
+          <Container component="main">
+            <Routes>
+              <Route path="/" element={<Websites />} />
+            </Routes>
+          </Container>
+        </WebsiteProvider>
+      </GraphProvider>
+    </Router>
+  );
 };
 
 export default App;

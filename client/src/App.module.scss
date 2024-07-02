@@ -1,0 +1,22 @@
+.app {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+    padding: 20px;
+}
+
+.graph-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.node-detail {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 8px;
+}
