@@ -39,7 +39,7 @@ const WebsiteTable: React.FC<WebsiteTableProps> = ({ onInfoClick }) => {
   const [order, setOrder] = useState<Order>("asc");
   const [orderBy, setOrderBy] = useState<keyof Website>("label");
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
@@ -51,7 +51,7 @@ const WebsiteTable: React.FC<WebsiteTableProps> = ({ onInfoClick }) => {
   };
 
   const handleRequestSort = (
-    event: React.MouseEvent<unknown>,
+    _event: React.MouseEvent<unknown>,
     property: keyof Website
   ) => {
     const isAsc = orderBy === property && order === "asc";

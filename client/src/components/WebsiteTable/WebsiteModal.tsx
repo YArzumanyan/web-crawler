@@ -44,7 +44,6 @@ const WebsiteModal: React.FC<WebsiteModalProps> = ({
 
   const handleSave = () => {
     const input = { label, url, boundaryRegExp, tags, periodicity, active };
-    console.log(input);
     if (website) {
       updateWebsite(website.id, input);
     } else {

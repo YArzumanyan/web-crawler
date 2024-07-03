@@ -29,7 +29,6 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({ website }) => {
   }, [fetchGraphData, fetchWebsiteNodes, website.id]);
 
   useEffect(() => {
-    console.log("websiteNodes", nodes);
     if (nodes && website) {
       setWebsiteNodes(nodes);
     }
