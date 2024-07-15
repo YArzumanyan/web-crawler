@@ -1,5 +1,5 @@
 import { defineConfig, loadEnv } from "vite";
-import react from '@vitejs/plugin-react'
+import react from "@vitejs/plugin-react";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -13,12 +13,12 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         "/graphql": {
-          target: "http://localhost:3000", // env.SERVER_URL,
+          target: env.SERVER_URL,
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => path.replace(/^\/graphql/, '/graphql')
+          rewrite: (path) => path.replace(/^\/graphql/, "/graphql"),
         },
       },
-    }
-  }
-})
+    },
+  };
+});
