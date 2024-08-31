@@ -29,7 +29,7 @@ export class CrawlRecord {
   @ManyToOne(() => Website, (website) => website.crawlRecords, {
     onDelete: "CASCADE",
   })
-  owner: Website;
+  owner: Website | undefined;
 
   matchLinksRecord: CrawlRecord[];
 
@@ -39,7 +39,7 @@ export class CrawlRecord {
     title: string,
     matchLinksRecordIds: string[],
     matchLinksRecord: CrawlRecord[],
-    owner: Website
+    owner: Website | undefined
   ) {
     this.url = url;
     this.crawlTime = crawlTime;
